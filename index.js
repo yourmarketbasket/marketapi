@@ -28,7 +28,7 @@ const jwt = require('jsonwebtoken');
 const shortid = require('shortid');
 dotenv.config();
 const mongoose = require('./db');
-const port = 3870;
+const port = 3000;
 // import route files
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes')
