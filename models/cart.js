@@ -5,6 +5,13 @@ const cartSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    avatar:{
+        type: [String],
+        required: true,
+    },
+    discount:{
+        type:Number,
+    },
     productname: {
         type: String,
         required:true

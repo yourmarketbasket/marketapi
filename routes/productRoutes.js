@@ -27,4 +27,15 @@ router.get('/productDetails/:id', async(req, res)=>{
     const id = req.params.id;
     res.json(await ProductService.getProductDetails(id));
 })
+
+router.post('/decreaseCartItemByOne', async(req,res)=>{
+    res.json(await ProductService.reduceQttyByOne(req.body))
+})
+
+router.post('/increaseCartItemByOne', async(req,res)=>{
+    res.json(await ProductService.increaseQttyByOne(req.body))
+})
+router.post('/removeCartItem', async(req,res)=>{
+    res.json(await ProductService.removeCartItem(req.body))
+})
 module.exports = router;

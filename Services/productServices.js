@@ -38,7 +38,9 @@ class ProductService {
                     totalCost: data.totalcost,
                     price: data.price,
                     productmodel: data.model,
-                    productname:data.name
+                    productname:data.name,
+                    avatar:data.avatar,
+                    discount:data.discount
                 });
                 success = true
             }else if(existingCartItem.available<data.quantity){
@@ -86,6 +88,10 @@ class ProductService {
                 success: true,
                 count: num
             };
+        }else{
+            return {
+                success: false
+            }
         }
     }
 
@@ -100,6 +106,90 @@ class ProductService {
         const product = await Product.find({_id:id});
         if(product){
             return {product:product, success:true}
+        }
+    }
+    static async reduceQttyByOne(data){
+        const cartitem = await Cart.findOne({productid:data.productid,buyerid:data.buyerid});
+        // console.log(cartitem.quantity-1)
+        if(cartitem){
+            if((cartitem.quantity-1)>0){
+                const updatedTotalCost = (cartitem.quantity-1)*cartitem.price;
+                const newcartitem = await Cart.updateOne(
+                    {
+                        productid:data.productid,
+                        buyerid: data.buyerid
+                    },
+                    {
+                        $inc: {quantity: -1, available:1},
+                        $set: {totalCost:updatedTotalCost}
+                    }
+                );
+                
+                if(newcartitem){
+                    return {success: true}
+                }else{
+                    return {success: false}
+                }
+
+            }else{
+                const deleteitem = await Cart.deleteOne({productid:data.productid, buyerid:data.buyerid})
+                if(deleteitem){
+                    return {success:true}
+                }else{
+                    return {success:false}
+                }
+            }
+            
+        }else{
+            return {success: false}
+        }
+
+    }
+
+    static async increaseQttyByOne(data){
+        const cartitem = await Cart.findOne({productid:data.productid,buyerid:data.buyerid});
+        // console.log(cartitem.quantity-1)
+        if(cartitem){
+            if((cartitem.available-1)>=0){
+                const updatedTotalCost = (cartitem.quantity+1)*cartitem.price;
+                const newcartitem = await Cart.updateOne(
+                    {
+                        productid:data.productid,
+                        buyerid: data.buyerid
+                    },
+                    {
+                        $inc: {quantity: 1, available:-1},
+                        $set: {totalCost:updatedTotalCost}
+                    }
+                );
+                
+                if(newcartitem){
+                    return {success: true}
+                }else{
+                    return {success: false}
+                }
+
+            }else{
+                return {success:false}
+            }
+            
+        }else{
+            return {success: false}
+        }
+
+    }
+
+    static async removeCartItem(data){
+        const cartitem = await Cart.findOne({productid:data.productid, buyerid:data.buyerid});
+        if(cartitem){
+            const deleteitem = await Cart.deleteOne({productid:data.productid, buyerid:data.buyerid});
+            if(deleteitem){
+                return {success:true}
+            }else{
+                return {success:false}
+            }
+        }else{
+            return {success:false}
         }
     }
 
