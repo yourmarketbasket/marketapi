@@ -36,7 +36,9 @@ class ProductService {
                     buyerid: data.userid,
                     available: available,
                     totalCost: data.totalcost,
-                    price: data.price
+                    price: data.price,
+                    productmodel: data.model,
+                    productname:data.name
                 });
                 success = true
             }else if(existingCartItem.available<data.quantity){
