@@ -38,4 +38,10 @@ router.post('/increaseCartItemByOne', async(req,res)=>{
 router.post('/removeCartItem', async(req,res)=>{
     res.json(await ProductService.removeCartItem(req.body))
 })
+router.post('/paystackCallback', async(req,res)=>{
+    console.log(res.json(await ProductService.paystackCallBack(req.body)))
+})
+router.post('/paystackWebhook', async(req,res)=>{
+    console.log(res.json(await ProductService.paystackWebhook(req.body)))
+})
 module.exports = router;

@@ -192,6 +192,12 @@ class ProductService {
             return {success:false}
         }
     }
+    static async paystackCallBack(data){
+        return data
+    }
+    static async paystackWebhook(data){
+        return data
+    }
 
       
 
