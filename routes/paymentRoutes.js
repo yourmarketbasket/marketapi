@@ -22,5 +22,34 @@ router.post('/transaction_status', async (req, res)=>{
     const status = await PaymentService.transactionStatus(req.body);
     res.json(status)
 });
+router.post('/pesapalToken', async (req, res)=>{
+    const token = await PaymentService.pesapalAuthtoken();
+    res.json(token.token)
+});
+router.post('/registerPesapalIPN', async (req, res)=>{
+    const register = await PaymentService.pesapalRegisterIPN();
+    res.json(register)
+});
+router.post('/listIPNS', async (req, res)=>{
+    const list = await PaymentService.listPesapalIPNS();
+    res.json(list)
+});
+router.post('/pesapalSOR', async (req, res)=>{
+    const list = await PaymentService.pesapalSubmitOrderRequest();
+    res.json(list)
+});
+router.post('/pesapalTransactionStatus/:id', async (req, res)=>{
+    const id = req.params.id;
+    // console.log(id)
+    const status = await PaymentService.getPesapalTransactionStatus(id);
+    res.json(status)
+});
+router.post('/pesapalRefund/:id', async (req, res)=>{
+    const id = req.params.id;
+    // console.log(id)
+    const status = await PaymentService.pesapalRefund(id);
+    res.json(status)
+});
+
 
 module.exports = router;

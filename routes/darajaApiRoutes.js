@@ -16,5 +16,9 @@ router.post('/confirmationUrl', async (req,res)=>{
 router.post('/validationUrl', async (req,res)=>{
     console.log(await req.body)
 });
+router.post('/pesaPallIPNResponse', async (req,res)=>{
+    console.log(await req.body)
+});
+
 
 module.exports = router;
