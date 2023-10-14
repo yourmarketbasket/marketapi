@@ -32,6 +32,9 @@ const port = 3000;
 // import route files
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes')
+const paymentRoutes = require('./routes/paymentRoutes')
+const darajaApiRoutes = require('./routes/darajaApiRoutes')
+
 
 
 
@@ -45,7 +48,8 @@ app.use(bodyparser.urlencoded({ extended: false }));
 // routes
 app.use('/api/users', userRoutes)
 app.use('/api/products', productRoutes)
-app.use('/api/payments', productRoutes)
+app.use('/api/payments', paymentRoutes)
+app.use('/api/darajaUrls', darajaApiRoutes)
 
 
 

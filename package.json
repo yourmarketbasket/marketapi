@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.5.1",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -16,6 +17,7 @@
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.3",
+    "node-datetime": "^2.1.2",
     "nodemon": "^3.0.1",
     "request": "^2.88.2",
     "shortid": "^2.2.16",
