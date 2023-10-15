@@ -10,18 +10,6 @@ router.post('/toBusinessTillNumber', async (req, res)=>{
     const toTillNumber = await PaymentService.toBusinessTillNumber(req.body);
     res.json(toTillNumber)
 });
-router.post('/stk', async (req, res)=>{
-    const stk = await PaymentService.mpesaExpress(req.body);
-    res.json(stk)
-});
-router.post('/reversal', async (req, res)=>{
-    const reversal = await PaymentService.Reversal(req.body);
-    res.json(reversal)
-});
-router.post('/transaction_status', async (req, res)=>{
-    const status = await PaymentService.transactionStatus(req.body);
-    res.json(status)
-});
 router.post('/pesapalToken', async (req, res)=>{
     const token = await PaymentService.pesapalAuthtoken();
     res.json(token.token)

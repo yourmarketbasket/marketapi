@@ -3,7 +3,7 @@ const https = require('https');
 const axios = require('axios')
 
 
-class Daraja{
+class Payments{
     
     
     // access token
@@ -47,7 +47,7 @@ class Daraja{
     }
     // B2C
     static async B2C(data){
-        const token = await Daraja.generateMpesaAccessToken();
+        const token = await Payments.generateMpesaAccessToken();
         const requestData = {
             OriginatorConversationID: '707402f3-ebf5-4e60-9ed7-2cec3583b5b2',
             InitiatorName: 'testapi',
@@ -57,8 +57,8 @@ class Daraja{
             PartyA: 600997,
             PartyB: 254708374149,
             Remarks: data.remarks,
-            QueueTimeOutURL: 'https://0b59-196-250-208-122.ngrok-free.app/api/darajaUrls/timeout',
-            ResultURL: 'https://0b59-196-250-208-122.ngrok-free.app/api/darajaUrls/resultUrl',
+            QueueTimeOutURL: 'https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/timeout',
+            ResultURL: 'https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/resultUrl',
             Occasion: data.occassion,
         };
 
@@ -94,7 +94,7 @@ class Daraja{
     }   
     // toBusinessPaybill
     static async toBusinessPayBill(){
-        const token = await Daraja.generateMpesaAccessToken();
+        const token = await Payments.generateMpesaAccessToken();
         const requestData = {
             "Initiator": "testapi",
             "SecurityCredential": "pZb7NXiyVW/Su470BRZ9sIEUbpZqmSYgMuGNBP0wqBROmfuRwK5Ub8e8ZpB0nccW1UxI9rHGk7ESIxWDNcsqt3BUoOTla7jC6p3DWYeazX7DCI02Wv9HfNr+2JOSB1UHMlYz8QK0wMKK39d9KO2gVjeekNTDyNdPf9DqInk1RL9OXhSRnYhbSQVrCIMu+5lUUDmnJi97O6nSP/hXzLnT7cJ3FUPXGa1OdCaoOXhzMTCc/bOQg+zwD9B9cjT8T6fND0U7XsX1Va1tdgbZVRcpSPlwgrG7MZJPWHKGmQyWCm6thR1ZH4O01de9XuIBDRmpbDvJBfqMgIThaqJ/eJfDDQ==",
@@ -107,8 +107,8 @@ class Daraja{
             "AccountReference": "353353",
             "Requester": "254700000000",
             "Remarks": "ok",
-            "QueueTimeOutURL": "https://0b59-196-250-208-122.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://0b59-196-250-208-122.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/timeout",
+            "ResultURL": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/resultUrl"
         };
 
         const config = {
@@ -130,7 +130,7 @@ class Daraja{
     }
     // to business till number
     static async toBusinessTillNumber(data){
-        const token =  await Daraja.generateMpesaAccessToken();
+        const token =  await Payments.generateMpesaAccessToken();
         const requestData = {
             "Initiator": "testapi",
             "SecurityCredential": "Eo8jMD7h3fzBi11GY4kBZt2XMBvIlgvU3wZ7baez0b/Ey4hR78HRz5UYBQarkAFY9rC5CBT2s+IrXbk4qnlkxhn0OST7bz0L/bM4ykK+kV1s8ZQsfHBTEuI+Z+Hzn1EbaRnz7+v/IVUDO1+9947+nW3hgJ6dKTilAh95X/E+wKIP3hRYweCjskzYBJuqq+d5PGMAfD1Ov5dFH9WeENRSHBUCvmBP+sLZZJP+ydA9OnrmVrphNu9aV0/LQO9hVV8ZWyKARpwuGwwbwMUfRawivguu8RimzGfNpj4rrNAKPrlkyJwiLB9szclw1ZO+FhQ4ICUms0tIDxZk2scghXkVng==",
@@ -143,8 +143,8 @@ class Daraja{
             "AccountReference": data.reference,
             "Requester": "254700000000",
             "Remarks": data.remarks,
-            "QueueTimeOutURL": "https://0b59-196-250-208-122.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://0b59-196-250-208-122.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/timeout",
+            "ResultURL": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/resultUrl"
         };
 
         return new Promise((resolve, reject) => {
@@ -224,7 +224,7 @@ class Daraja{
     }
     // pesapal register IPN
     static async pesapalRegisterIPN(){
-        const pesapaltoken = await Daraja.pesapalAuthtoken();
+        const pesapaltoken = await Payments.pesapalAuthtoken();
         const requestData = {
             method: 'POST',
             hostname: 'pay.pesapal.com',
@@ -236,7 +236,7 @@ class Daraja{
             },
           };
           const postData = JSON.stringify({
-            "url": "https://0b59-196-250-208-122.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
+            "url": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
             "ipn_notification_type": "POST"
           });
         return new Promise((resolve, reject) => {           
@@ -269,7 +269,7 @@ class Daraja{
     }
     // get the lists of ipns
     static async listPesapalIPNS(){
-        const pesapaltoken = await Daraja.pesapalAuthtoken();
+        const pesapaltoken = await Payments.pesapalAuthtoken();
         return new Promise((resolve, reject) => {
             const requestData = {
               method: 'GET',
@@ -307,7 +307,7 @@ class Daraja{
 
     }
     static async pesapalSubmitOrderRequest(){
-    const pesapaltoken = await Daraja.pesapalAuthtoken();
+    const pesapaltoken = await Payments.pesapalAuthtoken();
     return new Promise((resolve, reject) => {
         const requestData = {
             method: 'POST',
@@ -325,7 +325,7 @@ class Daraja{
             "currency": "KES",
             "amount": 4.00,
             "description": "Payment description goes here",
-            "callback_url": "https://0b59-196-250-208-122.ngrok-free.app/api/darajaUrls/callbackUrl",
+            "callback_url": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/callbackUrl",
             "redirect_mode": "",
             "notification_id": "cd5f317f-3f28-4c50-891d-de116d0e6fe5",
             "branch": "Store Name - HQ",
@@ -372,7 +372,7 @@ class Daraja{
     }
 
     static async getPesapalTransactionStatus(ordertrackingid){
-    const pesapaltoken = await Daraja.pesapalAuthtoken();
+    const pesapaltoken = await Payments.pesapalAuthtoken();
     return new Promise((resolve, reject) => {
         const url = `https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus?orderTrackingId=${ordertrackingid}`;
     
@@ -411,7 +411,7 @@ class Daraja{
     }
 
     static async pesapalRefund(confirmationcode){
-        const pesapaltoken = await Daraja.pesapalAuthtoken();
+        const pesapaltoken = await Payments.pesapalAuthtoken();
         return new Promise((resolve, reject) => {
             const url = 'https://pay.pesapal.com/v3/api/Transactions/RefundRequest';
         
@@ -467,4 +467,4 @@ class Daraja{
 
 
 
-module.exports = Daraja
+module.exports = Payments
