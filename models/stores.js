@@ -10,6 +10,9 @@ const storeSchema = new mongoose.Schema({
     rating: {
         type:Number
     },
+    currency: {
+        type:String
+    },
     storetype:{
         type: String,
         required: true,
@@ -17,7 +20,7 @@ const storeSchema = new mongoose.Schema({
         max: 255
     },
     location: {
-        type: String,
+        type: mongoose.Schema.Types.Mixed,
         required: true,
         min: 6,
         max: 255
