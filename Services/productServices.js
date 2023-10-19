@@ -33,6 +33,7 @@ class ProductService {
                 updatedCartItem = await Cart.create({
                     productid: data.productid,
                     quantity: data.quantity,
+                    storeid:data.storeid,
                     buyerid: data.userid,
                     available: available,
                     totalCost: data.totalcost,
@@ -45,8 +46,7 @@ class ProductService {
                 success = true
             }else if(existingCartItem.available<data.quantity){
                 success = false;
-                available = existingCartItem.available
-    
+                available = existingCartItem.available   
 
             }else{
                 success = false;
@@ -192,6 +192,7 @@ class ProductService {
             return {success:false}
         }
     }
+    
     static async paystackCallBack(data){
         return data
     }

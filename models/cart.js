@@ -5,6 +5,10 @@ const cartSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    storeid: {
+        type:String,
+        required:true,
+    },
     avatar:{
         type: [String],
         required: true,

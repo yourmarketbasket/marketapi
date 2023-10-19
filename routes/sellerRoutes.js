@@ -7,6 +7,11 @@ router.post('/updateSettings', async (req, res)=>{
     res.json(update)
 
 })
+router.get('/storelocation/:id', async (req,res)=>{
+    const userid = req.params.id;
+    const locations = await SellerServices.getStoreLocations(userid);
+    res.json(locations)
+})
 
 
 
