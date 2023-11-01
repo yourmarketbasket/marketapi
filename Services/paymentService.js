@@ -1,6 +1,8 @@
 const datetime = require('node-datetime')
 const https = require('https');
-const axios = require('axios')
+const axios = require('axios');
+const User = require('../models/user');
+const Payment = require('../models/payment');
 
 
 class Payments{
@@ -57,8 +59,8 @@ class Payments{
             PartyA: 600997,
             PartyB: 254708374149,
             Remarks: data.remarks,
-            QueueTimeOutURL: 'https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/timeout',
-            ResultURL: 'https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/resultUrl',
+            QueueTimeOutURL: 'https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout',
+            ResultURL: 'https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl',
             Occasion: data.occassion,
         };
 
@@ -107,8 +109,8 @@ class Payments{
             "AccountReference": "353353",
             "Requester": "254700000000",
             "Remarks": "ok",
-            "QueueTimeOutURL": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
+            "ResultURL": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
         };
 
         const config = {
@@ -143,8 +145,8 @@ class Payments{
             "AccountReference": data.reference,
             "Requester": "254700000000",
             "Remarks": data.remarks,
-            "QueueTimeOutURL": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
+            "ResultURL": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
         };
 
         return new Promise((resolve, reject) => {
@@ -236,7 +238,7 @@ class Payments{
             },
           };
           const postData = JSON.stringify({
-            "url": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
+            "url": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
             "ipn_notification_type": "POST"
           });
         return new Promise((resolve, reject) => {           
@@ -306,108 +308,138 @@ class Payments{
           });
 
     }
-    static async pesapalSubmitOrderRequest(){
-    const pesapaltoken = await Payments.pesapalAuthtoken();
-    return new Promise((resolve, reject) => {
-        const requestData = {
-            method: 'POST',
-            hostname: 'pay.pesapal.com',
-            path: '/v3/api/Transactions/SubmitOrderRequest',
-            headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${pesapaltoken.token}`
-            },
-        };
-    
-        const postData = JSON.stringify({
-            "id": "AA1122-3344ZZ",
-            "currency": "KES",
-            "amount": 4.00,
-            "description": "Payment description goes here",
-            "callback_url": "https://cc56-196-250-208-122.ngrok-free.app/api/darajaUrls/callbackUrl",
-            "redirect_mode": "",
-            "notification_id": "cd5f317f-3f28-4c50-891d-de116d0e6fe5",
-            "branch": "Store Name - HQ",
-            "billing_address": {
-            "email_address": "john.doe@example.com",
-            "phone_number": "0701650736",
-            "country_code": "KE",
-            "first_name": "John",
-            "middle_name": "",
-            "last_name": "Doe",
-            "line_1": "Pesapal Limited",
-            "line_2": "",
-            "city": "",
-            "state": "",
-            "postal_code": "",
-            "zip_code": ""
-            }
-        });
-    
-        const request = https.request(requestData, (response) => {
-            let data = '';
-    
-            response.on('data', (chunk) => {
-            data += chunk;
-            });
-    
-            response.on('end', () => {
-            try {
-                const responseData = JSON.parse(data);
-                resolve(responseData);
-            } catch (error) {
-                reject(error);
-            }
-            });
-        });
-    
-        request.on('error', (error) => {
-            reject(error);
-        });
-    
-        request.write(postData);
-        request.end();
-        });
+    // GET PAYEE DATA
+    static async getUserData(userid){
+      try{
+        const user = await User.findOne({_id:userid});
+        if(user){
+          return user
+        }
+      }catch(e){
+        console.log(user)
+      }
+    }
+    static async updatePaymentStatus(trackingid, data){
+      const payment = await Payment.findOneAndUpdate({trackingid:trackingid},{
+        amount: data.amount,
+        method: data.payment_method,
+        date: data.created_date,
+        confirmationCode: data.confirmation_code,
+        paymentStatus: data.payment_status_description,
+        message: data.message,
+        paymentAccount: data.payment_account,
+        currency: data.currency,
+        description: data.description
+      })
+      if(payment){
+        return true
+      }else{
+        return false;
+      }
+    }
+    static async pesapalSubmitOrderRequest(request){
+      const pesapaltoken = await Payments.pesapalAuthtoken();
+      const info = request;
+      return new Promise((resolve, reject) => {
+          const requestData = {
+              method: 'POST',
+              hostname: 'pay.pesapal.com',
+              path: '/v3/api/Transactions/SubmitOrderRequest',
+              headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${pesapaltoken.token}`
+              },
+          };
+      
+          const postData = JSON.stringify({
+              "id": info.transactionID,
+              "currency": "KES",
+              "amount": 1,
+              "description": info.description,
+              "callback_url": "http://localhost:4200",
+              "redirect_mode": "",
+              "notification_id": "2ae3297e-510c-4508-a85d-de00d36346ac",
+              "branch": "NISOKO TECHNOLOGIES",
+              "billing_address": {
+                "email_address": info.phone,
+                "phone_number": info.phone,
+                "country_code": info.countryCode,
+                "first_name": info.fname,
+                "middle_name": "",
+                "last_name": info.lname,
+                "line_1": "",
+                "line_2": "",
+                "city": "",
+                "state": "",
+                "postal_code": "",
+                "zip_code": info.zipcode
+              }
+          });
+      
+          const request = https.request(requestData, (response) => {
+              let data = '';
+      
+              response.on('data', (chunk) => {
+              data += chunk;
+              });
+      
+              response.on('end', () => {
+              try {
+                  const responseData = JSON.parse(data);
+                  resolve(responseData);
+              } catch (error) {
+                  reject(error);
+              }
+              });
+          });
+      
+          request.on('error', (error) => {
+              reject(error);
+          });
+      
+          request.write(postData);
+          request.end();
+          });
     }
 
     static async getPesapalTransactionStatus(ordertrackingid){
-    const pesapaltoken = await Payments.pesapalAuthtoken();
-    return new Promise((resolve, reject) => {
-        const url = `https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus?orderTrackingId=${ordertrackingid}`;
-    
-        const requestData = {
-            method: 'GET',
-            headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${pesapaltoken.token}`
-            },
-        };
-    
-        const request = https.request(url, requestData, (response) => {
-            let data = '';
-    
-            response.on('data', (chunk) => {
-            data += chunk;
-            });
-    
-            response.on('end', () => {
-            try {
-                const responseData = JSON.parse(data);
-                resolve(responseData);
-            } catch (error) {
-                reject(error);
-            }
-            });
-        });
-    
-        request.on('error', (error) => {
-            reject(error);
-        });
-    
-        request.end();
-        });
+      const pesapaltoken = await Payments.pesapalAuthtoken();
+      return new Promise((resolve, reject) => {
+          const url = `https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus?orderTrackingId=${ordertrackingid}`;
+      
+          const requestData = {
+              method: 'GET',
+              headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${pesapaltoken.token}`
+              },
+          };
+      
+          const request = https.request(url, requestData, (response) => {
+              let data = '';
+      
+              response.on('data', (chunk) => {
+              data += chunk;
+              });
+      
+              response.on('end', () => {
+              try {
+                  const responseData = JSON.parse(data);
+                  resolve(responseData);
+              } catch (error) {
+                  reject(error);
+              }
+              });
+          });
+      
+          request.on('error', (error) => {
+              reject(error);
+          });
+      
+          request.end();
+          });
     }
 
     static async pesapalRefund(confirmationcode){

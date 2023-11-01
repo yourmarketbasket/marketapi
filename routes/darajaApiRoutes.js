@@ -1,4 +1,5 @@
 const express = require('express');
+const Payment = require('../models/payment')
 const router = express.Router();
 
 router.post('/callbackUrl', async (req,res)=>{
@@ -17,7 +18,21 @@ router.post('/validationUrl', async (req,res)=>{
     console.log(await req.body)
 });
 router.post('/pesaPallIPNResponse', async (req,res)=>{
-    console.log(await req.body)
+    // add to the database
+    const response = req.body;
+    if(req.body){
+        // check if the record exists
+        const exists = await Payment.findOne({trackingid:response.OrderTrackingId});
+        if(!exists){
+            const newRecord = await Payment.create({
+                trackingid: response.OrderTrackingId,
+                reference: response.OrderMerchantReference,
+            });
+
+        }
+
+    }
+
 });
 
 

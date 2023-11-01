@@ -23,20 +23,30 @@ router.post('/listIPNS', async (req, res)=>{
     res.json(list)
 });
 router.post('/pesapalSOR', async (req, res)=>{
-    const list = await PaymentService.pesapalSubmitOrderRequest();
-    res.json(list)
+    // console.log(req.body.amount)
+    const sor = await PaymentService.pesapalSubmitOrderRequest(req.body);
+    res.json(sor)
 });
-router.post('/pesapalTransactionStatus/:id', async (req, res)=>{
+router.get('/pesapalTransactionStatus/:id', async (req, res)=>{
     const id = req.params.id;
-    // console.log(id)
     const status = await PaymentService.getPesapalTransactionStatus(id);
-    res.json(status)
+    if(status.payment_status_description=="Completed" && status.status==200){
+        // update the payment status
+        const update = await PaymentService.updatePaymentStatus(id, status)
+        if(update){
+            res.json(status)
+
+        }else{
+            console.log("error updating the payment")
+        }
+    }
 });
 router.post('/pesapalRefund/:id', async (req, res)=>{
     const id = req.params.id;
     // console.log(id)
     const status = await PaymentService.pesapalRefund(id);
     res.json(status)
+    
 });
 
 
