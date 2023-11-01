@@ -39,6 +39,8 @@ router.get('/pesapalTransactionStatus/:id', async (req, res)=>{
         }else{
             console.log("error updating the payment")
         }
+    }else{
+        res.json(status)
     }
 });
 router.post('/pesapalRefund/:id', async (req, res)=>{

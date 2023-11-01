@@ -357,7 +357,7 @@ class Payments{
               "currency": "KES",
               "amount": 1,
               "description": info.description,
-              "callback_url": "http://localhost:4200",
+              "callback_url": 'http://localhost:4200/market_place/success',
               "redirect_mode": "",
               "notification_id": "2ae3297e-510c-4508-a85d-de00d36346ac",
               "branch": "NISOKO TECHNOLOGIES",
