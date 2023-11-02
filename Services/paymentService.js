@@ -2,6 +2,7 @@ const datetime = require('node-datetime')
 const https = require('https');
 const axios = require('axios');
 const User = require('../models/user');
+const Cart = require('../models/cart')
 const Payment = require('../models/payment');
 
 
@@ -355,7 +356,7 @@ class Payments{
           const postData = JSON.stringify({
               "id": info.transactionID,
               "currency": "KES",
-              "amount": 1,
+              "amount":1,
               "description": info.description,
               "callback_url": 'http://localhost:4200/market_place/success',
               "redirect_mode": "",
@@ -489,6 +490,26 @@ class Payments{
             request.write(postData);
             request.end();
           });
+    }
+    static async validateCartCheckoutAmount(amount, userid, deliveryfee){
+      // get all products by a given buyer
+      const products = await Cart.find({buyerid:userid});
+      if(products){
+        // check the total amount
+        let total = deliveryfee;
+        products.forEach(e=>{
+          total+=e.totalCost
+        })
+        if(total==amount){
+          return true;
+        }else{
+          return false;
+        }
+
+      }else {
+        return false;
+      }
+
     }
         
     

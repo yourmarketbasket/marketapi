@@ -24,8 +24,14 @@ router.post('/listIPNS', async (req, res)=>{
 });
 router.post('/pesapalSOR', async (req, res)=>{
     // console.log(req.body.amount)
-    const sor = await PaymentService.pesapalSubmitOrderRequest(req.body);
-    res.json(sor)
+    const validated = await PaymentService.validateCartCheckoutAmount(req.body.amount, req.body.userid, req.body.deliveryfee);
+    if(validated){
+        const sor = await PaymentService.pesapalSubmitOrderRequest(req.body);
+        res.json(sor)
+    }else{
+        res.send({status:401, message: 'Cart Changed Please Refresh and Checkout Again'})
+    }
+    
 });
 router.get('/pesapalTransactionStatus/:id', async (req, res)=>{
     const id = req.params.id;
