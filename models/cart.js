@@ -16,6 +16,9 @@ const cartSchema = new Schema({
         type: [Schema.Types.Mixed],
         required:true
     },
+    completed: {
+        type: Boolean
+    }
   
 });
 
