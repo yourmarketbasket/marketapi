@@ -1,52 +1,22 @@
 const mongoose  = require('mongoose');
+const Schema = mongoose.Schema;
 
-const cartSchema = new mongoose.Schema({
-    productid:{
-        type:String,
-        required:true
-    },
-    storeid: {
-        type:String,
-        required:true,
-    },
-    avatar:{
-        type: [String],
-        required: true,
-    },
-    discount:{
+const cartSchema = new Schema({
+    amount:{
         type:Number,
     },
-    productname: {
-        type: String,
-        required:true
+    items: {
+        type: Number,
     },
-    productmodel: {
-        type: String,
-        required:true
-
-    },
-    buyerid:{
+    buyerid: {
         type:String,
-        required:true
-
-    },
-    quantity: {
-        type: Number,
-        required: true,
-    },
-    available: {
-        type: Number,
         required: true
     },
-    totalCost: {
-        type:Number,
-        required: true,
+    products: {
+        type: [Schema.Types.Mixed],
+        required:true
     },
-    price: {
-        type:Number,
-        required: true,
-    }
-
+  
 });
 
 const Cart = mongoose.model('Cart', cartSchema);

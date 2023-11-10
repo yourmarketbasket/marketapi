@@ -23,13 +23,12 @@ router.post('/listIPNS', async (req, res)=>{
     res.json(list)
 });
 router.post('/pesapalSOR', async (req, res)=>{
-    // console.log(req.body.amount)
     const validated = await PaymentService.validateCartCheckoutAmount(req.body.amount, req.body.userid, req.body.deliveryfee);
-    if(validated){
+    if(validated.success){
         const sor = await PaymentService.pesapalSubmitOrderRequest(req.body);
         res.json(sor)
     }else{
-        res.send({status:401, message: 'Cart Changed Please Refresh and Checkout Again'})
+        res.send({status:401, message: validated.message})
     }
     
 });

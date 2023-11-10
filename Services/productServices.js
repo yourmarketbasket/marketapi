@@ -1,85 +1,145 @@
 const Product = require('../models/products');
 const Cart = require('../models/cart');
+const Order = require('../models/orders');
+const Payments = require('./paymentService');
 
 class ProductService {
     static async addToCart(data) {
         try {
-          let updatedCartItem;
-          let success;
-        
-          let available;
-          const product = await Product.findOne({_id:data.productid});
-          if(product){
-            available = product.quantity;
-            success = true;
-                // Try to find the cart item by product ID
-            const existingCartItem = await Cart.findOne({ productid: data.productid, buyerid:data.userid });           
-            if (existingCartItem && existingCartItem.available>0) {
-                // update available quantity
-                available = existingCartItem.available-data.quantity
-                // If the product is found, increment the quantity
-                updatedCartItem = await Cart.findByIdAndUpdate(
-                existingCartItem._id,
-                { 
-                    $set: {available: available},
-                    $inc: { quantity: data.quantity, totalCost: data.totalcost }
-                },
-                { new: true }
-                );
-                success = true
-            } else if(!existingCartItem) {
-                available = available-data.quantity;
-                // If the product is not found, create a new cart item
-                updatedCartItem = await Cart.create({
-                    productid: data.productid,
-                    quantity: data.quantity,
-                    storeid:data.storeid,
+            // Find the user's existing cart or create a new one if it doesn't exist
+            const existingCart = await Cart.findOne({ buyerid: data.userid });
+    
+            const totalcost = data.quantity * data.price;
+    
+            if (!existingCart) {
+                // get the product quantity
+                const p = await Product.findOne({_id:data.productid});
+                // If the user doesn't have an existing cart, create a new one
+                let available = p.quantity - data.quantity;
+                const newCart = await Cart.create({
+                    amount: totalcost,
                     buyerid: data.userid,
-                    available: available,
-                    totalCost: data.totalcost,
-                    price: data.price,
-                    productmodel: data.model,
-                    productname:data.name,
-                    avatar:data.avatar,
-                    discount:data.discount
+                    items: 1,
+                    products: [
+                        {
+                            productid: data.productid,
+                            quantity: data.quantity,
+                            storeid: data.storeid,
+                            available: available,
+                            totalCost: totalcost,
+                            price: data.price,
+                            productmodel: data.model,
+                            productname: data.name,
+                            avatar: data.avatar,
+                            discount: data.discount,
+                        },
+                    ],
                 });
-                success = true
-            }else if(existingCartItem.available<data.quantity){
-                success = false;
-                available = existingCartItem.available   
+    
+                if (newCart) {
+                    return {success:true,available:available, message: "New Cart Created witht the Product"}
+                } else {
+                    return {success:false, available:available, message: "Something went wrong while creating the cart."}
+                }
+            } else {
+                // Check if a product exists in the given cart
+                const productExist = await Cart.findOneAndUpdate(
+                    {
+                        buyerid: data.userid,
+                        products: { $elemMatch: { productid: data.productid } },
+                    },
+                    {
+                        $inc: { "products.$.quantity": data.quantity, "products.$.totalCost": totalcost, "products.$.available":-data.quantity },
+                    },
+                    { new: true }
+                );
+                // console.log(productExist)
+                if (productExist) {
+                    const targetProduct = productExist.products.find(product=>product.productid === data.productid);
+                    if(targetProduct){
+                        let cost = data.quantity*data.price;
+                        const updateAmount = await Cart.findOneAndUpdate({ buyerid: data.userid }, {
+                            $inc: { amount: cost }
+                        },
+                        {
+                            new: true
+                        });
+                        if (updateAmount) {
+                            return { success: true, available: targetProduct.available, message: "Cart Product Updated" };
+                        } else {
+                            return { success: false, available: targetProduct.available, message: "Error: Could not update cart product!" };
+                        }
+                    }
+                    
+                } else {
+                    // Add a new product to the existing cart
+                    const p = await Product.findOne({_id:data.productid});
+                    let available = p.quantity - data.quantity;
+                    const totalcost = data.quantity * data.price;
+                    existingCart.products.push({
+                        productid: data.productid,
+                        quantity: data.quantity,
+                        storeid: data.storeid,
+                        available: available,
+                        totalCost: totalcost,
+                        price: data.price,
+                        productmodel: data.model,
+                        productname: data.name,
+                        avatar: data.avatar,
+                        discount: data.discount,
+                    });
 
-            }else{
-                success = false;
-                available = 0;
+                    // Update the amount in the cart
+                    existingCart.amount += totalcost;
+                    existingCart.items+=1;
+
+                    const addNewItem = await existingCart.save();
+
+                    if (addNewItem) {
+                        return {success:true,available:available, message: "New Product Added to Cart"}
+                    } else {
+                        return {success:false,available:available, message: "Error adding product to cart"}
+                    }
+                }
             }
-
-                       
-        
-            
-          }
-     
-          return {
-              message: updatedCartItem,
-              available: available,
-              success:success
-          } 
         } catch (error) {
-          console.error(error);
-          throw new Error('Server error'); // Throw an error instead of returning a response
+            return {success: false, message: "Server Error"}
         }
-      }
-
-    static async availableProductQuantityForUser(data){
-        // check amount from cart
-        let product = await Cart.findOne({productid:data.productid, buyerid:data.userid})
-        if(product){
-            return {quantity: product.available, success: true}
-        }else{
-            product = await Product.findOne({_id:data.productid})
-            return {quantity: product.quantity, success: true}
-        }
-
     }
+    
+    
+    static async availableProductQuantityForUser(data) {
+        try {
+            // Check if the product is in the user's cart
+            const productInCart = await Cart.findOne(
+                {
+                    buyerid: data.userid,
+                    products: { $elemMatch: { productid: data.productid } },
+                },
+                { 'products.$': 1 }
+            );
+    
+            if (productInCart && productInCart.products.length > 0) {
+                // If the product is in the cart, return the available quantity from the cart
+                const availableQuantity = productInCart.products[0].available;
+                return { quantity: availableQuantity, success: true };
+            } else {
+                // If the product is not in the cart, look it up in the product collection
+                const product = await Product.findOne({ _id: data.productid });
+    
+                if (product) {
+                    return { quantity: product.quantity, success: true };
+                } else {
+                    // Handle the case when the product is not found in the product collection
+                    return { quantity: 0, success: false };
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            return { quantity: 0, success: false };
+        }
+    }
+    
 
     static async numberOfItemsInCart(data){
         const num = await Cart.countDocuments({buyerid:data.userid})
@@ -199,6 +259,8 @@ class ProductService {
     static async paystackWebhook(data){
         return data
     }
+    
+    
 
       
 

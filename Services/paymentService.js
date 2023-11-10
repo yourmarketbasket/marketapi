@@ -4,6 +4,8 @@ const axios = require('axios');
 const User = require('../models/user');
 const Cart = require('../models/cart')
 const Payment = require('../models/payment');
+const ProductService = require('./productServices');
+const Order = require('../models/orders')
 
 
 class Payments{
@@ -60,8 +62,8 @@ class Payments{
             PartyA: 600997,
             PartyB: 254708374149,
             Remarks: data.remarks,
-            QueueTimeOutURL: 'https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout',
-            ResultURL: 'https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl',
+            QueueTimeOutURL: 'https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout',
+            ResultURL: 'https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl',
             Occasion: data.occassion,
         };
 
@@ -110,8 +112,8 @@ class Payments{
             "AccountReference": "353353",
             "Requester": "254700000000",
             "Remarks": "ok",
-            "QueueTimeOutURL": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
+            "ResultURL": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
         };
 
         const config = {
@@ -146,8 +148,8 @@ class Payments{
             "AccountReference": data.reference,
             "Requester": "254700000000",
             "Remarks": data.remarks,
-            "QueueTimeOutURL": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
+            "ResultURL": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
         };
 
         return new Promise((resolve, reject) => {
@@ -239,7 +241,7 @@ class Payments{
             },
           };
           const postData = JSON.stringify({
-            "url": "https://7ebe-102-217-167-34.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
+            "url": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
             "ipn_notification_type": "POST"
           });
         return new Promise((resolve, reject) => {           
@@ -341,67 +343,75 @@ class Payments{
     static async pesapalSubmitOrderRequest(request){
       const pesapaltoken = await Payments.pesapalAuthtoken();
       const info = request;
-      return new Promise((resolve, reject) => {
-          const requestData = {
-              method: 'POST',
-              hostname: 'pay.pesapal.com',
-              path: '/v3/api/Transactions/SubmitOrderRequest',
-              headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${pesapaltoken.token}`
-              },
-          };
-      
-          const postData = JSON.stringify({
-              "id": info.transactionID,
-              "currency": "KES",
-              "amount":1,
-              "description": info.description,
-              "callback_url": 'http://localhost:4200/market_place/success',
-              "redirect_mode": "",
-              "notification_id": "2ae3297e-510c-4508-a85d-de00d36346ac",
-              "branch": "NISOKO TECHNOLOGIES",
-              "billing_address": {
-                "email_address": info.phone,
-                "phone_number": info.phone,
-                "country_code": info.countryCode,
-                "first_name": info.fname,
-                "middle_name": "",
-                "last_name": info.lname,
-                "line_1": "",
-                "line_2": "",
-                "city": "",
-                "state": "",
-                "postal_code": "",
-                "zip_code": info.zipcode
-              }
-          });
-      
-          const request = https.request(requestData, (response) => {
-              let data = '';
-      
-              response.on('data', (chunk) => {
-              data += chunk;
-              });
-      
-              response.on('end', () => {
-              try {
-                  const responseData = JSON.parse(data);
-                  resolve(responseData);
-              } catch (error) {
-                  reject(error);
-              }
-              });
-          });
-      
-          request.on('error', (error) => {
-              reject(error);
-          });
-      
-          request.write(postData);
-          request.end();
-          });
+      // create an order
+      const createorder = await Payments.createNewCartOrder(request)
+      if(createorder.success && createorder.status == 100){
+        // pesapal submit order 
+        return new Promise((resolve, reject) => {
+            const requestData = {
+                method: 'POST',
+                hostname: 'pay.pesapal.com',
+                path: '/v3/api/Transactions/SubmitOrderRequest',
+                headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${pesapaltoken.token}`
+                },
+            };
+        
+            const postData = JSON.stringify({
+                "id": info.transactionID,
+                "currency": "KES",
+                "amount":1, //info.amount,
+                "description": info.description,
+                "callback_url": 'http://localhost:4200/market_place/success',
+                "redirect_mode": "",
+                "notification_id": "2ae3297e-510c-4508-a85d-de00d36346ac",
+                "branch": "NISOKO TECHNOLOGIES",
+                "billing_address": {
+                  "email_address": info.phone,
+                  "phone_number": info.phone,
+                  "country_code": info.countryCode,
+                  "first_name": info.fname,
+                  "middle_name": "",
+                  "last_name": info.lname,
+                  "line_1": "",
+                  "line_2": "",
+                  "city": "",
+                  "state": "",
+                  "postal_code": "",
+                  "zip_code": info.zipcode
+                }
+            });
+        
+            const request = https.request(requestData, (response) => {
+                let data = '';
+        
+                response.on('data', (chunk) => {
+                data += chunk;
+                });
+        
+                response.on('end', () => {
+                try {
+                    const responseData = JSON.parse(data);
+                    resolve(responseData);
+                } catch (error) {
+                    reject(error);
+                }
+                });
+            });
+        
+            request.on('error', (error) => {
+                reject(error);
+            });
+        
+            request.write(postData);
+            request.end();
+            });
+
+      }else{
+        return {status: 402, success: false, message: createorder.message}
+      }
     }
 
     static async getPesapalTransactionStatus(ordertrackingid){
@@ -501,16 +511,69 @@ class Payments{
           total+=e.totalCost
         })
         if(total==amount){
-          return true;
+          return {success:true, data:products};
         }else{
-          return false;
+          return {success:false, message:"Cart Changed"};
         }
 
       }else {
-        return false;
+        return {success:false, message:"Cart not found!"};
       }
 
     }
+    // mark orders as paid
+    static async createNewCartOrder(data){
+      // validate the payment
+      const validated = await Payments.validateCartCheckoutAmount(data.amount, data.userid, data.deliveryfee);
+      if(validated.success){        
+              try{
+                  const neworder = await new Order({
+                      transactionID: data.transactionID,
+                      amount: data.amount,
+                      countryCode: data.countryCode,   
+                      destination: data.destination,
+                      origin: data.origin,
+                      zipCode: data.zipcode,
+                      deliveryfee: data.deliveryfee,   
+                      items: validated.data.length,
+                      products: validated.data,
+                      paymentStatus: "Pending"      
+                  });
+                // check if the order already exists
+                const exists = await Order.findOne({products:validated.data})
+                if(!exists){
+                  const save = await neworder.save();
+                  if(save){
+                      return {status: 100, success:true, message: "Order Created Successfully."};
+                  }else{
+                    return {success:false, message: "Error Creating the order!", status: 402};                     
+                  }
+
+                }else{
+                   // update the order
+                   const update = await Order.findOneAndUpdate({products:validated.data}, 
+                    {$set: {products:validated.data, amount: data.amount, items: validated.data.length, deliveryfee: data.deliveryfee,destination: data.destination, origin:data.origin}}
+                  )
+                  if(update){
+                    const updateamount = exists.amount;
+                    console.log(updateamount-data.amount)
+                    return {success:false, message: "Order Updated.", status: 101};
+                  }else{
+                    return {success:false, message: "Error Updating Order.", status: 402};
+                  }
+                }
+                  
+              }catch(e){
+                  console.log(e)
+              }
+          
+      }else{
+        return {success:false, message: "Cart Changed"};
+      }
+      
+
+
+  }
         
     
 
