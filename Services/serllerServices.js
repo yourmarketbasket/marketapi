@@ -27,28 +27,34 @@ class SellerServices{
         
     }
     static async getStoreLocations(userid) {
-        try {
+      try {
           const stores = [];
           const origins = [];
           const cart = await Cart.find({ buyerid: userid });
-      
+  
           // Use Promise.all to await all async operations inside the loop
-          await Promise.all(cart.map(async (e) => {
-            if (!stores.includes(e.storeid)) {
-              stores.push(e.storeid);
-              // get the store location
-              const store = await Store.findOne({ _id: e.storeid });
-              if (store) {
-                origins.push(store.location);
-              }
-            }
+          await Promise.all(cart.map(async (cartItem) => {
+              // Iterate through each product in the cartItem
+              await Promise.all(cartItem.products.map(async (product) => {
+                  if (!stores.includes(product.storeid)) {
+                      stores.push(product.storeid);
+  
+                      // get the store location
+                      const store = await Store.findOne({ _id: product.storeid });
+                      if (store) {
+                          origins.push(store.location);
+                      }
+                  }
+              }));
           }));
-      
-          return {success:true, origins:origins};
-        } catch (e) {
+  
+          return { success: true, origins: origins };
+      } catch (e) {
           console.log(e);
-        }
+          return { success: false, message: 'Error fetching store locations' };
       }
+    }
+  
       
 
 }

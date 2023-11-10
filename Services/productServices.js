@@ -5,23 +5,68 @@ const Payments = require('./paymentService');
 
 class ProductService {
     static async addToCart(data) {
-        try {
-            // Find the user's existing cart or create a new one if it doesn't exist
-            const existingCart = await Cart.findOne({ buyerid: data.userid });
-    
-            const totalcost = data.quantity * data.price;
-    
-            if (!existingCart) {
-                // get the product quantity
+            try {
+                // Find the user's existing cart or create a new one if it doesn't exist
+                const existingCart = await Cart.findOne({ buyerid: data.userid });
+        
+                const totalcost = data.quantity * data.price;
                 const p = await Product.findOne({_id:data.productid});
-                // If the user doesn't have an existing cart, create a new one
-                let available = p.quantity - data.quantity;
-                const newCart = await Cart.create({
-                    amount: totalcost,
-                    buyerid: data.userid,
-                    items: 1,
-                    products: [
+        
+                if (!existingCart) {
+                    // get the product quantity
+                    // If the user doesn't have an existing cart, create a new one
+                    let available = p.quantity - data.quantity;
+                    const newCart = await Cart.create({
+                        amount: totalcost,
+                        buyerid: data.userid,
+                        items: 1,
+                        products: [
+                            {
+                                productid: data.productid,
+                                quantity: data.quantity,
+                                storeid: data.storeid,
+                                available: available,
+                                totalCost: totalcost,
+                                price: data.price,
+                                productmodel: data.model,
+                                productname: data.name,
+                                avatar: data.avatar,
+                                discount: data.discount,
+                            },
+                        ],
+                    });
+        
+                    if (newCart) {
+                        return {success:true,available:available, message: "New Cart Created witht the Product"}
+                    } else {
+                        return {success:false, available:available, message: "Something went wrong while creating the cart."}
+                    }
+                } else {
+                    const totalCost = data.quantity*data.price
+                    const productExist = await Cart.findOneAndUpdate(
                         {
+                            buyerid: data.userid,
+                            products: { $elemMatch: { productid: data.productid } },
+                        },
+                        {
+                            $inc: { "products.$.quantity": data.quantity, "products.$.totalCost": totalcost, "products.$.available":-data.quantity, amount: totalCost },
+                        }
+                    );
+                    if (productExist) {
+                        const targetProduct = productExist.products.find(product=>product.productid === data.productid);
+                        if(targetProduct){                        
+                            return { success: true, available: targetProduct.available-data.quantity, message: "Cart Product Updated" };
+                        } else {
+                            return { success: false, available: targetProduct.available, message: "Error: Could not update cart product!" };
+                        }
+                        
+                        
+                    } else {
+                        // Add a new product to the existing cart
+                        const p = await Product.findOne({_id:data.productid});
+                        let available = p.quantity - data.quantity;
+                        const totalcost = data.quantity * data.price;
+                        existingCart.products.push({
                             productid: data.productid,
                             quantity: data.quantity,
                             storeid: data.storeid,
@@ -32,79 +77,27 @@ class ProductService {
                             productname: data.name,
                             avatar: data.avatar,
                             discount: data.discount,
-                        },
-                    ],
-                });
-    
-                if (newCart) {
-                    return {success:true,available:available, message: "New Cart Created witht the Product"}
-                } else {
-                    return {success:false, available:available, message: "Something went wrong while creating the cart."}
-                }
-            } else {
-                // Check if a product exists in the given cart
-                const productExist = await Cart.findOneAndUpdate(
-                    {
-                        buyerid: data.userid,
-                        products: { $elemMatch: { productid: data.productid } },
-                    },
-                    {
-                        $inc: { "products.$.quantity": data.quantity, "products.$.totalCost": totalcost, "products.$.available":-data.quantity },
-                    },
-                    { new: true }
-                );
-                // console.log(productExist)
-                if (productExist) {
-                    const targetProduct = productExist.products.find(product=>product.productid === data.productid);
-                    if(targetProduct){
-                        let cost = data.quantity*data.price;
-                        const updateAmount = await Cart.findOneAndUpdate({ buyerid: data.userid }, {
-                            $inc: { amount: cost }
-                        },
-                        {
-                            new: true
                         });
-                        if (updateAmount) {
-                            return { success: true, available: targetProduct.available, message: "Cart Product Updated" };
+    
+                        // Update the amount in the cart
+                        existingCart.amount += totalcost;
+                        existingCart.items+=1;
+    
+                        const addNewItem = await existingCart.save();
+    
+                        if (addNewItem) {
+                            return {success:true,available:available, message: "New Product Added to Cart"}
                         } else {
-                            return { success: false, available: targetProduct.available, message: "Error: Could not update cart product!" };
+                            return {success:false,available:available, message: "Error adding product to cart"}
                         }
                     }
-                    
-                } else {
-                    // Add a new product to the existing cart
-                    const p = await Product.findOne({_id:data.productid});
-                    let available = p.quantity - data.quantity;
-                    const totalcost = data.quantity * data.price;
-                    existingCart.products.push({
-                        productid: data.productid,
-                        quantity: data.quantity,
-                        storeid: data.storeid,
-                        available: available,
-                        totalCost: totalcost,
-                        price: data.price,
-                        productmodel: data.model,
-                        productname: data.name,
-                        avatar: data.avatar,
-                        discount: data.discount,
-                    });
-
-                    // Update the amount in the cart
-                    existingCart.amount += totalcost;
-                    existingCart.items+=1;
-
-                    const addNewItem = await existingCart.save();
-
-                    if (addNewItem) {
-                        return {success:true,available:available, message: "New Product Added to Cart"}
-                    } else {
-                        return {success:false,available:available, message: "Error adding product to cart"}
-                    }
                 }
+            } catch (error) {
+                console.log(error)
+                return {success: false, message: "Server Error"}
             }
-        } catch (error) {
-            return {success: false, message: "Server Error"}
-        }
+
+        
     }
     
     
@@ -167,89 +160,115 @@ class ProductService {
         if(product){
             return {product:product, success:true}
         }
-    }
-    static async reduceQttyByOne(data){
-        const cartitem = await Cart.findOne({productid:data.productid,buyerid:data.buyerid});
-        // console.log(cartitem.quantity-1)
-        if(cartitem){
-            if((cartitem.quantity-1)>0){
-                const updatedTotalCost = (cartitem.quantity-1)*cartitem.price;
-                const newcartitem = await Cart.updateOne(
-                    {
-                        productid:data.productid,
-                        buyerid: data.buyerid
-                    },
-                    {
-                        $inc: {quantity: -1, available:1},
-                        $set: {totalCost:updatedTotalCost}
-                    }
-                );
-                
-                if(newcartitem){
-                    return {success: true}
-                }else{
-                    return {success: false}
-                }
+    }// Update the path accordingly
 
-            }else{
-                const deleteitem = await Cart.deleteOne({productid:data.productid, buyerid:data.buyerid})
-                if(deleteitem){
-                    return {success:true}
-                }else{
-                    return {success:false}
-                }
+    static async reduceQttyByOne(data) {
+        try {
+            // Find the cart and the specific product
+            const cart = await Cart.findOne({ buyerid:data.buyerid });
+            const product = await cart.products.find(item => item.productid === data.productid);
+            // console.log(product.quantity)
+
+            if (!product) {
+                return { success: false, message: 'Product not found in the cart' };
             }
             
-        }else{
-            return {success: false}
-        }
+            // Check if the quantity is greater than 1 before reducing
+            if (product.quantity > 1) {
+                // console.log(product)
+                const thiscost =product.price;
 
+
+                // Update the specific product in the cart
+                const reduce = await Cart.findOneAndUpdate(
+                    { 
+                        buyerid: data.buyerid,
+                        products: { $elemMatch: { productid: data.productid } },
+                    },
+                    {
+                        $inc: { 'products.$.quantity': -1, 'products.$.available': 1, 'products.$.totalCost': -thiscost, amount: -thiscost  },
+                    }
+                );
+
+                return { success: true, message: 'Product quantity reduced by one' };
+            } 
+        } catch (error) {
+            return { success: false, message: 'Error reducing product quantity' };
+        }
     }
+
 
     static async increaseQttyByOne(data){
-        const cartitem = await Cart.findOne({productid:data.productid,buyerid:data.buyerid});
-        // console.log(cartitem.quantity-1)
-        if(cartitem){
-            if((cartitem.available-1)>=0){
-                const updatedTotalCost = (cartitem.quantity+1)*cartitem.price;
-                const newcartitem = await Cart.updateOne(
-                    {
-                        productid:data.productid,
-                        buyerid: data.buyerid
-                    },
-                    {
-                        $inc: {quantity: 1, available:-1},
-                        $set: {totalCost:updatedTotalCost}
-                    }
-                );
-                
-                if(newcartitem){
-                    return {success: true}
-                }else{
-                    return {success: false}
-                }
+        // console.log(data)
+        try {
+            // Find the cart and the specific product
+            const cart = await Cart.findOne({ buyerid:data.buyerid });
+            const product = await cart.products.find(item => item.productid === data.productid);
+            // console.log(product.quantity)
 
-            }else{
-                return {success:false}
+            if (!product) {
+                return { success: false, message: 'Product not found in the cart' };
             }
             
-        }else{
-            return {success: false}
+            // Check if the quantity is greater than 1 before reducing
+            if (data.available > 0) {
+                // console.log(product)
+                const thiscost =product.price;
+
+
+                // Update the specific product in the cart
+                const reduce = await Cart.findOneAndUpdate(
+                    { 
+                        buyerid: data.buyerid,
+                        products: { $elemMatch: { productid: data.productid } },
+                    },
+                    {
+                        $inc: { 'products.$.quantity': 1, 'products.$.available': -1, 'products.$.totalCost': thiscost, amount: thiscost  },
+                    }
+                );
+
+                return { success: true, message: 'Product quantity increased by one' };
+            } 
+        } catch (error) {
+            return { success: false, message: 'Error increasing product quantity' };
         }
 
     }
 
     static async removeCartItem(data){
-        const cartitem = await Cart.findOne({productid:data.productid, buyerid:data.buyerid});
-        if(cartitem){
-            const deleteitem = await Cart.deleteOne({productid:data.productid, buyerid:data.buyerid});
-            if(deleteitem){
-                return {success:true}
+        try {
+            // Find the cart and the specific product
+            const cart = await Cart.findOne({ buyerid:data.buyerid });
+            const product = cart.products.find(item => item.productid === data.productid);
+    
+            if (!product) {
+                return { success: false, message: 'Product not found in the cart!' };
             }else{
-                return {success:false}
+                // Remove the specific product from the cart
+                const remove = await Cart.updateOne(
+                    { 
+                        buyerid:data.buyerid,
+                    },
+                    {
+                        $pull: {products: {productid: data.productid}},
+                        $inc: {amount: -product.totalCost, items: -1}
+                    }
+                );
+                if(remove){
+                    // delete the cart if the amount is zero
+                    if((cart.amount-product.totalCost) == 0){
+                        await Cart.deleteOne({buyerid:data.buyerid});
+                        return { success: true, message: 'Product and Cart deleted' };
+                    }
+                    return { success: true, message: 'Product deleted from Cart' };           
+
+                }
+
             }
-        }else{
-            return {success:false}
+    
+        } catch (error) {
+            console.log(error)
+            return { success: false, message: 'Error deleting product from the cart' };
         }
     }
     
