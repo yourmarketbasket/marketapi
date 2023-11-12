@@ -62,8 +62,8 @@ class Payments{
             PartyA: 600997,
             PartyB: 254708374149,
             Remarks: data.remarks,
-            QueueTimeOutURL: 'https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout',
-            ResultURL: 'https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl',
+            QueueTimeOutURL: 'https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout',
+            ResultURL: 'https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl',
             Occasion: data.occassion,
         };
 
@@ -112,8 +112,8 @@ class Payments{
             "AccountReference": "353353",
             "Requester": "254700000000",
             "Remarks": "ok",
-            "QueueTimeOutURL": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
+            "ResultURL": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
         };
 
         const config = {
@@ -148,8 +148,8 @@ class Payments{
             "AccountReference": data.reference,
             "Requester": "254700000000",
             "Remarks": data.remarks,
-            "QueueTimeOutURL": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
+            "ResultURL": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
         };
 
         return new Promise((resolve, reject) => {
@@ -241,7 +241,7 @@ class Payments{
             },
           };
           const postData = JSON.stringify({
-            "url": "https://5202-102-217-167-34.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
+            "url": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
             "ipn_notification_type": "POST"
           });
         return new Promise((resolve, reject) => {           
@@ -322,23 +322,48 @@ class Payments{
         console.log(user)
       }
     }
-    static async updatePaymentStatus(trackingid, data){
-      const payment = await Payment.findOneAndUpdate({trackingid:trackingid},{
-        amount: data.amount,
-        method: data.payment_method,
-        date: data.created_date,
-        confirmationCode: data.confirmation_code,
-        paymentStatus: data.payment_status_description,
-        message: data.message,
-        paymentAccount: data.payment_account,
-        currency: data.currency,
-        description: data.description
-      })
-      if(payment){
-        return true
-      }else{
+    static async updateOrderStatus(reference, status){
+      try{
+        const updateorder = await Order.findOneAndUpdate({transactionID: reference}, 
+          {
+            $set: {paymentStatus: status}
+          });
+          if(updateorder){
+            return true;
+          }else{
+            return false;
+          }
+
+      }catch(e){
+        console.log(e)
         return false;
       }
+
+    }
+    static async updatePaymentStatus(trackingid, data){
+      try{
+        const payment = await Payment.findOneAndUpdate({trackingid:trackingid},{
+          amount: data.amount,
+          method: data.payment_method,
+          date: data.created_date,
+          confirmationCode: data.confirmation_code,
+          paymentStatus: data.payment_status_description,
+          message: data.message,
+          paymentAccount: data.payment_account,
+          currency: data.currency,
+          description: data.description
+        })
+        if(payment){
+          // update the order status
+          return Payments.updateOrderStatus(payment.reference, data.payment_status_description)
+        }else{
+          return false;
+        }
+
+      }catch(e){
+        console.log(e)
+      }
+      
     }
     static async pesapalSubmitOrderRequest(request){
       const pesapaltoken = await Payments.pesapalAuthtoken();
@@ -366,7 +391,7 @@ class Payments{
                 "description": info.description,
                 "callback_url": 'http://localhost:4200/market_place/success',
                 "redirect_mode": "",
-                "notification_id": "2ae3297e-510c-4508-a85d-de00d36346ac",
+                "notification_id": "a8117489-c5c8-4ddd-bef4-ddf43d39239e",
                 "branch": "NISOKO TECHNOLOGIES",
                 "billing_address": {
                   "email_address": info.phone,
@@ -504,12 +529,11 @@ class Payments{
     static async validateCartCheckoutAmount(amount, userid, deliveryfee){
       // get all products by a given buyer
       const products = await Cart.find({buyerid:userid});
+      // console.log(products[0].amount)
       if(products){
         // check the total amount
-        let total = deliveryfee;
-        products.forEach(e=>{
-          total+=e.totalCost
-        })
+        let total = deliveryfee+products[0].amount;
+       
         if(total==amount){
           return {success:true, data:products};
         }else{
@@ -525,18 +549,21 @@ class Payments{
     static async createNewCartOrder(data){
       // validate the payment
       const validated = await Payments.validateCartCheckoutAmount(data.amount, data.userid, data.deliveryfee);
-      if(validated.success){        
+      if(validated.success){    
+        // console.log()    
               try{
                   const neworder = await new Order({
                       transactionID: data.transactionID,
+                      buyerid: validated.data[0].buyerid,
                       amount: data.amount,
                       countryCode: data.countryCode,   
                       destination: data.destination,
                       origin: data.origin,
                       zipCode: data.zipcode,
                       deliveryfee: data.deliveryfee,   
-                      items: validated.data.length,
-                      products: validated.data,
+                      items: validated.data[0].items,
+                      products: validated.data[0].products,
+                      buyername: `${data.fname.trim()} ${data.lname.trim()}`,
                       paymentStatus: "Pending"      
                   });
                 // check if the order already exists

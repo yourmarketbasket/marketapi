@@ -17,6 +17,14 @@ const orderSchema = new Schema({
         type: Number,
         required: true
     },
+    buyername: {
+        required:true,
+        type: String, 
+    },
+    buyerid: {
+        type: String, 
+        required: true,
+    },
     deliveryfee: {
         type: Number,
         required:true,
