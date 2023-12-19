@@ -5,7 +5,8 @@ const User = require('../models/user');
 const Cart = require('../models/cart')
 const Payment = require('../models/payment');
 const ProductService = require('./productServices');
-const Order = require('../models/orders')
+const Order = require('../models/orders');
+const Product = require('../models/products');
 
 
 class Payments{
@@ -324,15 +325,23 @@ class Payments{
     }
     static async updateOrderStatus(reference, status){
       try{
-        const updateorder = await Order.findOneAndUpdate({transactionID: reference}, 
-          {
-            $set: {paymentStatus: status}
-          });
-          if(updateorder){
-            return true;
-          }else{
-            return false;
-          }
+        // check if order is already marked as completed
+        const completed = await Order.findOne({transactionID: reference, paymentStatus: 'Completed'});
+        if(!completed && status=="Completed"){
+          const updateorder = await Order.findOneAndUpdate({transactionID: reference}, 
+            {
+              $set: {paymentStatus: status}
+            });
+            if(updateorder){
+              // update listing
+              return Payments.updateProductListingOnOrderComplete(updateorder.products, updateorder.buyerid);
+            }else{
+              return false;
+            }
+
+        }else{
+          return true;
+        }
 
       }catch(e){
         console.log(e)
@@ -340,6 +349,33 @@ class Payments{
       }
 
     }
+    // remove the products from the store once an order is marked as complete
+    static async updateProductListingOnOrderComplete(data, buyerid) {
+      try {
+        for (const product of data) {
+          // remove the product from the products
+          await Product.findOneAndUpdate(
+            {
+              _id: product.productid,
+              storeid: product.storeid,
+            },
+            {
+              $inc: { quantity: -product.quantity },
+            }
+          );
+          
+        }
+
+        // remove the cart that bears the userid
+        await Cart.findOneAndDelete({buyerid: buyerid})
+    
+        return true; // Assuming you want to return true if the update is successful
+      } catch (e) {
+        console.error(e);
+        return false;
+      }
+    }
+    
     static async updatePaymentStatus(trackingid, data){
       try{
         const payment = await Payment.findOneAndUpdate({trackingid:trackingid},{
