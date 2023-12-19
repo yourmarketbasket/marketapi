@@ -35,6 +35,8 @@ const productRoutes = require('./routes/productRoutes')
 const paymentRoutes = require('./routes/paymentRoutes')
 const darajaApiRoutes = require('./routes/darajaApiRoutes')
 const sellerRoutes = require('./routes/sellerRoutes')
+const notificationRoutes = require('./routes/notifyRoutes')
+
 
 
 
@@ -53,6 +55,7 @@ app.use('/api/products', productRoutes)
 app.use('/api/payments', paymentRoutes)
 app.use('/api/darajaUrls', darajaApiRoutes)
 app.use('/api/sellers', sellerRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 
 
