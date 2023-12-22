@@ -11,9 +11,9 @@ router.post('/login', async (req, res) => {
     
     try {
       const user = await AuthService.authenticateUser(phone, password);
-      res.json(user); // Send the response back to the client
+      res.status(user.status).json(user); // Send the response back to the client
     } catch (error) {
-      res.json({ message: 'Internal Server Error', success: false });
+      res.status(500).json({ message: 'Internal Server Error', success: false });
     }
   });
 // register

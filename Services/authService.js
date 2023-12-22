@@ -32,9 +32,9 @@ class AuthService {
           }
         );
 
-        return { message: 'Login Successful', success: true, token, userId };
+        return { message: 'Login Successful', success: true, token:token, userid:userId, status:200};
       } else {
-        return { message: 'Invalid Details', success: false };
+        return { message: 'Invalid Details', success: false, status:404};
       }
     } catch (error) {
       throw error; // You can rethrow the error or handle it as needed

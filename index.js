@@ -372,6 +372,8 @@ app.get('/getUser/:id', async (req, res) => {
     return res.status(500).json({ message: 'Server error' }); // handle other errors
   }
 });
+
+
 app.post('/editProduct', async (req, res)=>{
   const product = await Product.find({_id:req.body.id});
   if(product){
