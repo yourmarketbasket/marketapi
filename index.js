@@ -211,6 +211,25 @@ app.get('/getAllProducts', async (req, res)=>{
   }
 })
 
+app.get('/getCategoryProducts/:category', async (req, res) => {
+  try {
+    // Extract the category from the route parameters
+    const category = req.params.category;
+
+    // Adjust the query to filter by the specified category in a case-insensitive manner
+    const products = await Product.find({ category: new RegExp(category, 'i'), approved: true, verified: true });
+
+    if (products.length > 0) {
+      res.status(200).json({ data: products, success: true });
+    } else {
+      res.status(404).json({ success: false, message: 'No products found in the specified category' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 // get stores
 app.get('/getStores/:id', async (req, res) => {
   const userId = req.params.id;
