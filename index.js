@@ -205,9 +205,9 @@ app.post('/isFavorite', async (req, res)=>{
 app.get('/getAllProducts', async (req, res)=>{
   const product = await Product.find({approved:true})
   if(product){
-    res.status(200).send({data:product, success:true})
+    res.status(200).json({data:product, success:true})
   }else{
-    res.status(404).send({success: false, message:'Could not find the product'})
+    res.status(404).json({success: false, message:'Could not find the product'})
   }
 })
 
