@@ -96,7 +96,6 @@ class ProductService {
                 console.log(error)
                 return {success: false, message: "Server Error"}
             }
-
         
     }
     
