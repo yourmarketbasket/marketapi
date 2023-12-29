@@ -3,6 +3,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const request = require('request');
 const dotenv = require('dotenv');
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const verifySid = process.env.TWILIO_VERIFY_SID;
+const client = require("twilio")(accountSid, authToken);
 
 class AuthService {
     
@@ -119,8 +123,8 @@ class AuthService {
             return {message: 'User already exists', success:false};
         }else{
             await user.save();
-            const authService = new AuthService();
-            const verifydata = await authService.sendOTP(data.phone, data.zipcode);
+            // const authService = new AuthService();
+            // const verifydata = await authService.sendOTP(data.phone, data.zipcode);
             
             if (user) {
                 let phone = data.phone;
@@ -138,7 +142,6 @@ class AuthService {
     }catch(error){
         return error
     }
-
    
   }
   // verify reset password otp
@@ -297,6 +300,38 @@ class AuthService {
 
     })    
   }
+  // send Twilio verification
+  static async sendVerificationCode(mobilenumber) {
+    try {
+      const verification = await client.verify.v2
+        .services(verifySid)
+        .verifications.create({ to: mobilenumber, channel: "sms" });
+  
+      return verification;
+    } catch (error) {
+      // Handle errors if needed
+      console.error(error);
+      throw error; // Rethrow the error if necessary
+    }
+  }
+  // verify twilio otp
+  static async verifyTwilioOTPCode(mobilenumber, otpcode) {
+    try {
+      const verificationCheck = await client.verify.v2
+        .services(verifySid)
+        .verificationChecks.create({ to: mobilenumber, code: otpcode });
+  
+      return verificationCheck;
+    } catch (error) {
+      // Handle errors if needed
+      console.error(error);
+      throw error; // Rethrow the error if necessary
+    }
+  }
+  
+
+
+
 }
 
 module.exports = AuthService;

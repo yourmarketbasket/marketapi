@@ -10,7 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server,{
   cors: {
-    origin: ["http://localhost:4200"], 
+    origin: ["http://localhost:4200"],
     methods: ["GET", "POST"]
   }
 });
@@ -36,6 +36,8 @@ const paymentRoutes = require('./routes/paymentRoutes')
 const darajaApiRoutes = require('./routes/darajaApiRoutes')
 const sellerRoutes = require('./routes/sellerRoutes')
 const notificationRoutes = require('./routes/notifyRoutes')
+
+// const authRoutes = require('./routes/auth')
 
 
 

@@ -88,6 +88,15 @@ router.post('/resetUserPassword', async(req, res)=>{
 
 });
 
+router.post('/sendTwilioOTP/:number', async (req, res)=>{
+    const mobilenumber = req.params.number;
+    res.json(await AuthService.sendVerificationCode(mobilenumber));
+});
+
+router.post('/verifyTwilioOTP', async (req, res)=>{
+    res.json(await AuthService.verifyTwilioOTPCode(req.body.mobilenumber, req.body.otpcode));
+});
+
   
 
 module.exports = router;
