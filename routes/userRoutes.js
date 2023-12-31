@@ -20,10 +20,10 @@ router.post('/login', async (req, res) => {
 router.post('/register', async(req, res)=>{
     try{
         const user = await AuthService.registerUser(req.body);
-        res.json(user)
+        res.status(200).json(user)
 
     }catch (error){
-        res.json({message: 'Some error occured', success: false})
+        res.status(500).json({message: 'Some error occured', success: false})
     }
 
 })
@@ -88,13 +88,24 @@ router.post('/resetUserPassword', async(req, res)=>{
 
 });
 
-router.post('/sendTwilioOTP/:number', async (req, res)=>{
-    const mobilenumber = req.params.number;
-    res.json(await AuthService.sendVerificationCode(mobilenumber));
+router.post('/sendTwilioOTP', async (req, res)=>{    
+    response = await AuthService.sendVerificationCode(req.body.mobilenumber, req.body.signature)
+    if(response.sid && response.serviceSid && response.to && response.status=="pending"){
+        res.status(200).json({success:true, message: response.status});
+    }else{
+        res.status(500).json({success:false, message: "Some error occured!"});;
+    }
+    // res.json();
 });
 
 router.post('/verifyTwilioOTP', async (req, res)=>{
-    res.json(await AuthService.verifyTwilioOTPCode(req.body.mobilenumber, req.body.otpcode));
+    response = await AuthService.verifyTwilioOTPCode(req.body.mobilenumber, req.body.otpcode);
+    if(response.status=="approved" && response.valid){
+        res.status(200).json({success:true, message:response.status});
+    }else{
+        res.status(500).json({success:false, message: "Some error orccured"})
+    }
+    // res.json()
 });
 
   

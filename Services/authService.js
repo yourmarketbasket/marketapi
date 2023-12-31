@@ -101,46 +101,35 @@ class AuthService {
     // register user
   static async registerUser(data){
 
-    try{
-        const hashedPassword = await bcrypt.hash(data.password, 10);
-        const user = new User({
-            fname: data.fname,
-            lname: data.lname,
-            phone: data.phone,
-            avatar: '',
-            email: '',
-            dob: data.dob,
-            zipcode: data.zipcode,
-            gender: data.gender,
-            password: hashedPassword, // use the hashed password
-            city: data.city,
-            address: data.address,
-            verified: false,
-            verificationAttempts: 0,
-        });
+    try{        
         const existingUser = await User.findOne({phone:data.phone, zipcode:data.zipcode })
-        if(existingUser){
+        if(existingUser){          
             return {message: 'User already exists', success:false};
         }else{
-            await user.save();
-            // const authService = new AuthService();
-            // const verifydata = await authService.sendOTP(data.phone, data.zipcode);
-            
-            if (user) {
-                let phone = data.phone;
-                // If the user already exists, increment their verification attempts by 1
-                await User.findOneAndUpdate({ phone }, { $inc: { verificationAttempts: 1 } });
-              } else {
-                // If the user doesn't exist yet, create a new user and set their verification attempts to 1
-                await User.create({ phone, verificationAttempts: 0 });
-              }
+          const hashedPassword = await bcrypt.hash(data.password, 10);
+          const user = new User({
+              fname: data.fname,
+              lname: data.lname,
+              phone: data.phone,
+              avatar: '',
+              email: '',
+              dob: data.dob,
+              zipcode: data.zipcode,
+              gender: data.gender,
+              password: hashedPassword, // use the hashed password
+              city: data.city,
+              address: data.address,
+              verified: data.verified,
+              verificationAttempts: 0,
+          });
+          await user.save();
                   
-              return { message: `Registration  successfull`, success: true, data: verifydata};
+          return { message: `Registration  successfull`, success: true};
                       
         }
 
     }catch(error){
-        return error
+        return {success: false, message: error};
     }
    
   }
@@ -300,34 +289,84 @@ class AuthService {
 
     })    
   }
-  // send Twilio verification
-  static async sendVerificationCode(mobilenumber) {
-    try {
-      const verification = await client.verify.v2
-        .services(verifySid)
-        .verifications.create({ to: mobilenumber, channel: "sms" });
+
+  static async sendVerificationCode(mobilenumber, signature, timeoutMillis = 5000, maxRetries = 3) {
+    let retries = 0;
   
-      return verification;
-    } catch (error) {
-      // Handle errors if needed
-      console.error(error);
-      throw error; // Rethrow the error if necessary
-    }
-  }
-  // verify twilio otp
-  static async verifyTwilioOTPCode(mobilenumber, otpcode) {
-    try {
-      const verificationCheck = await client.verify.v2
-        .services(verifySid)
-        .verificationChecks.create({ to: mobilenumber, code: otpcode });
+    while (retries < maxRetries) {
+      try {
+        const verificationPromise = client.verify.v2
+          .services(verifySid)
+          .verifications.create({ to: mobilenumber, channel: "sms", appHash: signature });
   
-      return verificationCheck;
-    } catch (error) {
-      // Handle errors if needed
-      console.error(error);
-      throw error; // Rethrow the error if necessary
+        // Use Promise.race to set a timeout
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timed out')), timeoutMillis)
+        );
+  
+        // Race the verification promise against the timeout promise
+        const result = await Promise.race([verificationPromise, timeoutPromise]);
+  
+        return result;
+      } catch (error) {
+        // Handle specific error types
+        if (error.code === 'ENOTFOUND') {
+          console.error('DNS resolution failed. Retrying...');
+          retries++;
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for a short time before retrying
+        } else {
+          // Handle other errors
+          console.error(error);
+          throw error; // Rethrow the error if necessary
+        }
+      }
     }
+  
+    throw new Error('Max retries reached. Unable to complete the request.');
   }
+  
+
+  static async verifyTwilioOTPCode(mobilenumber, otpcode, timeoutMillis = 5000, maxRetries = 3) {
+    let retries = 0;
+  
+    while (retries < maxRetries) {
+      try {
+        const verificationCheckPromise = client.verify.v2
+          .services(verifySid)
+          .verificationChecks.create({ to: mobilenumber, code: otpcode });
+  
+        // Use Promise.race to set a timeout
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timed out')), timeoutMillis)
+        );
+  
+        // Race the verification check promise against the timeout promise
+        const result = await Promise.race([verificationCheckPromise, timeoutPromise]);
+  
+        return result;
+      } catch (error) {
+        // Handle specific error types
+        if (error.status === 404 && error.code === 20404) {
+          console.error('Twilio verification resource not found. Check mobilenumber and otpcode.');
+          return { success: false, message: 'Resource not found' };
+        } else if (error.code === 'ENOTFOUND') {
+          console.error('DNS resolution failed. Retrying...');
+          retries++;
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for a short time before retrying
+        } else {
+          // Handle other errors
+          console.error(error);
+          throw error; // Rethrow the error if necessary
+        }
+      }
+    }
+  
+    throw new Error('Max retries reached. Unable to complete the request.');
+  }
+  
+
+
+
   
 
 

@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const request = require('request');
-const ip = '192.168.88.207';
+// const ip = '192.168.88.207';
 
 let otpid = '';
 
@@ -585,5 +585,5 @@ io.on('connection', (socket) => {
 
 // configure the port
 server.listen(port, () => {
-    console.log(`Server is running on http://${ip}:${port}`);
+    console.log(`Server is running on localhost:${port}`);
 });
