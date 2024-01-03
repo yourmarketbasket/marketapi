@@ -133,12 +133,13 @@ class ProductService {
     }
     
 
-    static async numberOfItemsInCart(data){
-        const num = await Cart.countDocuments({buyerid:data.userid})
+    static async numberOfItemsInCart(userid){
+        const num = await Cart.findOne({buyerid:userid});
         if(num){
+            // console.log(num[0].items)
             return {
                 success: true,
-                count: num
+                count: num.items
             };
         }else{
             return {
@@ -148,9 +149,11 @@ class ProductService {
     }
 
     static async getCartItems(userid){
-        const items = await Cart.find({buyerid:userid}).lean();
+        const items = await Cart.find({buyerid:userid});
         if(items){
             return {items: items, success:true}
+        }else{
+            return {success:false}
         }
     }
 

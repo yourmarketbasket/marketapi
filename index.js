@@ -38,15 +38,6 @@ const sellerRoutes = require('./routes/sellerRoutes')
 const notificationRoutes = require('./routes/notifyRoutes')
 
 // const authRoutes = require('./routes/auth')
-
-
-
-
-
-
-
-
-
 app.use(cors())
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: false }));
@@ -58,11 +49,6 @@ app.use('/api/payments', paymentRoutes)
 app.use('/api/darajaUrls', darajaApiRoutes)
 app.use('/api/sellers', sellerRoutes)
 app.use('/api/notifications', notificationRoutes)
-
-
-
-
-
 
 // splitting the api
 app.get('/', (req, res) => {

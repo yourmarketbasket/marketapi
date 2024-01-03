@@ -13,14 +13,23 @@ router.post('/availableQttyForUser', async(req, res)=>{
 
 });
  
-router.post('/numOfItemsInCart', async(req, res)=>{
-    res.json({num: await ProductService.numberOfItemsInCart(req.body)})
+router.get('/numOfItemsInCart/:userid', async(req, res)=>{
+    items = await ProductService.numberOfItemsInCart(req.params.userid);
+    if(items.success){
+        res.status(200).json(items);
+    }else{
+        res.status(400).json(items);
+    }
 });
 
 router.get('/getCartItems/:id', async(req, res)=>{
     const userid = req.params.id
-    response = await ProductService.getCartItems(userid)
-    res.json(response)
+    response = await ProductService.getCartItems(userid);
+    if(response.success){
+        res.status(200).json(response);
+    }else{
+        res.status(400).json(response);
+    }
 })
 
 router.get('/productDetails/:id', async(req, res)=>{
