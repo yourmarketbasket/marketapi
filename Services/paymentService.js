@@ -10,6 +10,32 @@ const Product = require('../models/products');
 
 
 class Payments{
+
+   // jenga api integration
+   static async authenticateMerchant(){
+      const apiUrl = 'https://uat.finserve.africa/authentication/api/v3/authenticate/merchant';
+      const apiKey = 'vO0LiLemnEsK4L1OHfw1asd3e+CRTdXCWin6HLspXv5GcUM6czmqpz3XwzaF1MeIF/vLsKPGVwFeoY9Is1NdSA==';
+    
+      const requestData = {
+        merchantCode: '6670492257',
+        consumerSecret: '0EzPUvQKr9y8PZWa7lRz4a08oR29w4',
+      };
+    
+      try {
+        const response = await axios.post(apiUrl, requestData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Api-Key': apiKey,
+          },
+        });
+    
+        return response.data;
+      } catch (error) {
+        console.error('Error making Jenga API request:', error.response ? error.response.data : error.message);
+        throw new Error('Jenga API request failed');
+      }
+    };
+
     
     
     // access token

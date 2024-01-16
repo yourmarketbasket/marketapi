@@ -55,6 +55,17 @@ router.post('/pesapalRefund/:id', async (req, res)=>{
     res.json(status)
     
 });
+// jenga api routes
+router.post('/authenticate-merchant', async (req, res) => {
+    try {
+        const jengaResponse = await PaymentService.authenticateMerchant();
+        res.status(200).json(jengaResponse);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+  
+
 
 
 module.exports = router;
