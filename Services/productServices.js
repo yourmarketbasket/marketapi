@@ -9,70 +9,97 @@ class ProductService {
                 // Find the user's existing cart or create a new one if it doesn't exist
                 const existingCart = await Cart.findOne({ buyerid: data.userid });
         
-                const totalcost = data.quantity * data.price;
+                const totalcost = data.quantity * data.price*(1-(data.discount/100));
                 const p = await Product.findOne({_id:data.productid});
         
                 if (!existingCart) {
                     // get the product quantity
                     // If the user doesn't have an existing cart, create a new one
                     let available = p.quantity - data.quantity;
-                    const newCart = await Cart.create({
-                        amount: totalcost,
-                        buyerid: data.userid,
-                        items: 1,
-                        products: [
-                            {
-                                productid: data.productid,
-                                quantity: data.quantity,
-                                storeid: data.storeid,
-                                available: available,
-                                totalCost: totalcost,
-                                price: data.price,
-                                productmodel: data.model,
-                                productname: data.name,
-                                avatar: data.avatar,
-                                discount: data.discount,
-                            },
-                        ],
-                    });
-        
-                    if (newCart) {
-                        return {success:true,available:available, message: "New Cart Created witht the Product"}
-                    } else {
-                        return {success:false, available:available, message: "Something went wrong while creating the cart."}
+                    if(available>=0){
+                        const newCart = await Cart.create({
+                            amount: totalcost,
+                            buyerid: data.userid,
+                            items: 1,
+                            products: [
+                                {
+                                    productid: data.productid,
+                                    quantity: data.quantity,
+                                    storeid: data.storeid,
+                                    available: available,
+                                    totalCost: parseFloat(totalcost.toFixed(2)),
+                                    price: parseFloat((data.price*(1-(data.discount/100))).toFixed(2)),
+                                    productmodel: data.model,
+                                    productname: data.name,
+                                    avatar: data.avatar,
+                                    discount: data.discount,
+                                },
+                            ],
+                        });
+            
+                        if (newCart) {
+                            return {success:true,available:available, message: "New Cart Created witht the Product"}
+                        } else {
+                            return {success:false, available:available, message: "Something went wrong while creating the cart."}
+                        }
+
+                    }else{
+                        return {success:false,available:available, message: "Inadequate Product Quantity"}
                     }
+                    
                 } else {
-                    const totalCost = data.quantity*data.price
-                    const productExist = await Cart.findOneAndUpdate(
+                    const thiscart = await Cart.findOne(
                         {
                             buyerid: data.userid,
                             products: { $elemMatch: { productid: data.productid } },
-                        },
-                        {
-                            $inc: { "products.$.quantity": data.quantity, "products.$.totalCost": totalcost, "products.$.available":-data.quantity, amount: totalCost },
+                        })
+                    if(thiscart){
+                        const existingProduct = thiscart.products.find(product=>product.productid === data.productid);                    
+                        if((existingProduct.available-data.quantity)>=0){
+                            const totalCost = data.quantity*data.price*(1-(data.discount/100))
+                            const updateProduct = await Cart.findOneAndUpdate(
+                                {
+                                    buyerid: data.userid,
+                                    products: { $elemMatch: { productid: data.productid } },
+                                },
+                                {
+                                    $inc: { 
+                                        "products.$.quantity": data.quantity, 
+                                        "products.$.totalCost": parseFloat(totalcost.toFixed(2)), 
+                                        "products.$.available":-data.quantity, 
+                                        amount: totalCost.toFixed(2)
+                                    }
+                                }
+                            );
+                            if (updateProduct) {
+                                const targetProduct = updateProduct.products.find(product=>product.productid === data.productid);
+                                if(targetProduct){                        
+                                    return { success: true, available: targetProduct.available-data.quantity, message: "Cart Product Updated" };
+                                } else {
+                                    return { success: false, available: targetProduct.available, message: "Error: Could not update cart product!" };
+                                }
+                                
+                                
+                            } else {
+                                return { success: false,  message: "Error: Could not update cart product!" };
+                                
+                            }
+                        }else{
+                            return {success:false, message: "Sorry...we're running low on this product"}
                         }
-                    );
-                    if (productExist) {
-                        const targetProduct = productExist.products.find(product=>product.productid === data.productid);
-                        if(targetProduct){                        
-                            return { success: true, available: targetProduct.available-data.quantity, message: "Cart Product Updated" };
-                        } else {
-                            return { success: false, available: targetProduct.available, message: "Error: Could not update cart product!" };
-                        }
-                        
-                        
-                    } else {
+
+                    }else{
                         // Add a new product to the existing cart
                         const p = await Product.findOne({_id:data.productid});
                         let available = p.quantity - data.quantity;
-                        const totalcost = data.quantity * data.price;
+                        const totalcost = data.quantity * data.price*(1-(data.discount/100));
                         existingCart.products.push({
                             productid: data.productid,
                             quantity: data.quantity,
                             storeid: data.storeid,
                             available: available,
-                            totalCost: totalcost,
-                            price: data.price,
+                            totalCost: parseFloat(totalcost.toFixed(2)),
+                            price: parseFloat((data.price*(1-(data.discount/100))).toFixed(2)),
                             productmodel: data.model,
                             productname: data.name,
                             avatar: data.avatar,
@@ -80,7 +107,7 @@ class ProductService {
                         });
     
                         // Update the amount in the cart
-                        existingCart.amount += totalcost;
+                        existingCart.amount += parseFloat(totalcost.toFixed(2));
                         existingCart.items+=1;
     
                         const addNewItem = await existingCart.save();
@@ -91,10 +118,12 @@ class ProductService {
                             return {success:false,available:available, message: "Error adding product to cart"}
                         }
                     }
+                    
+                    
                 }
             } catch (error) {
                 console.log(error)
-                return {success: false, message: "Server Error"}
+                return {success: false, message: "Server Error"};
             }
         
     }
