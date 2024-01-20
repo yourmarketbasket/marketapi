@@ -38,7 +38,7 @@ class ProductService {
                         });
             
                         if (newCart) {
-                            return {success:true,available:available, message: "New Cart Created witht the Product"}
+                            return {success:true,available:available, message: "New Cart Created with the Product"}
                         } else {
                             return {success:false, available:available, message: "Something went wrong while creating the cart."}
                         }
@@ -160,6 +160,51 @@ class ProductService {
             return { quantity: 0, success: false };
         }
     }
+
+    static async editCartProductQuantity(data) {
+        try{
+            const cart = await Cart.findOne({buyerid: data.buyerid});
+            const product = await cart.products.find(item=>item.productid === data.productid);
+            if(product){
+                // console.log(product)
+                const totalProductAmount = product.available+product.quantity;
+                if(data.quantity<=totalProductAmount){
+                    const newavailable = totalProductAmount-data.quantity;
+                    const thiscost  = product.price*data.quantity;
+                    const newcartamount = (cart.amount - product.totalCost)+thiscost
+
+                    // // Update the specific product in the cart
+                    const reduce = await Cart.findOneAndUpdate(
+                        { 
+                            buyerid: data.buyerid,
+                            products: { $elemMatch: { productid: data.productid } },
+                        },
+                        {
+                            $set: {
+                                'products.$.quantity': data.quantity, 
+                                'products.$.available': newavailable, 
+                                'products.$.totalCost': thiscost, 
+                                amount: newcartamount
+                            }
+                        }
+                    );
+                    return { success: true, message: 'Product quantity updated' };
+
+                }else{
+                    return { success: false, message: 'Inadequate quantity' }; 
+                }
+                
+            }else{
+
+                return { success: false, message: 'Product not found in the cart' };
+
+            }
+            
+
+        }catch(e){
+            return { success: false, message: e };
+        }
+    }
     
 
     static async numberOfItemsInCart(userid){
@@ -227,7 +272,6 @@ class ProductService {
             return { success: false, message: 'Error reducing product quantity' };
         }
     }
-
 
     static async increaseQttyByOne(data){
         // console.log(data)

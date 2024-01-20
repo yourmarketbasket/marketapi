@@ -12,6 +12,12 @@ router.post('/availableQttyForUser', async(req, res)=>{
     res.json(await ProductService.availableProductQuantityForUser(req.body))
 
 });
+
+router.post('/editCartProductQuantity', async (req, res) => {   
+    const updatedCart = await ProductService.editCartProductQuantity(req.body);       
+    res.status(200).json(updatedCart);       
+});
+  
  
 router.get('/numOfItemsInCart/:userid', async(req, res)=>{
     items = await ProductService.numberOfItemsInCart(req.params.userid);
