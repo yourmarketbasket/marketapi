@@ -227,7 +227,7 @@ class ProductService {
         if(items){
             return {items: items, success:true}
         }else{
-            return {success:false}
+            return {items:[], success:false}
         }
     }
 
