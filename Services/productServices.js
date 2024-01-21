@@ -122,8 +122,8 @@ class ProductService {
                     
                 }
             } catch (error) {
-                console.log(error)
-                return {success: false, message: "Server Error"};
+                // console.log(error)
+                return {success: false, message: error};
             }
         
     }

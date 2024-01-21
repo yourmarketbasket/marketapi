@@ -268,7 +268,7 @@ class Payments{
             },
           };
           const postData = JSON.stringify({
-            "url": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
+            "url": "https://3b14-105-163-0-17.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
             "ipn_notification_type": "POST"
           });
         return new Promise((resolve, reject) => {           
@@ -453,7 +453,7 @@ class Payments{
                 "description": info.description,
                 "callback_url": 'http://localhost:4200/market_place/success',
                 "redirect_mode": "",
-                "notification_id": "a8117489-c5c8-4ddd-bef4-ddf43d39239e",
+                "notification_id": "d721ad7d-26f3-4103-a20b-ddae2c6cf7c4",
                 "branch": "NISOKO TECHNOLOGIES",
                 "billing_address": {
                   "email_address": info.phone,
