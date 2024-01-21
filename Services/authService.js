@@ -121,6 +121,7 @@ class AuthService {
               address: data.address,
               verified: data.verified,
               verificationAttempts: 0,
+              location: '',
           });
           await user.save();
                   
@@ -339,6 +340,7 @@ class AuthService {
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Request timed out')), timeoutMillis)
         );
+       
   
         // Race the verification check promise against the timeout promise
         const result = await Promise.race([verificationCheckPromise, timeoutPromise]);

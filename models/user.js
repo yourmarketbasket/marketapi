@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     rating:{
         type:Number,
     },
+    
     lname: {
         type: String,
         required: true,
@@ -48,6 +49,11 @@ const userSchema = new mongoose.Schema({
     address: {
         type: String,
         required: true,
+        min: 6,
+        max: 255
+    },
+    location: {
+        type: mongoose.Schema.Types.Mixed,
         min: 6,
         max: 255
     },
