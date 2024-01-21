@@ -111,7 +111,7 @@ class AuthService {
               fname: data.fname,
               lname: data.lname,
               phone: data.phone,
-              avatar: '',
+              avatar: 'https://firebasestorage.googleapis.com/v0/b/market-e62c9.appspot.com/o/avatar%2F360_F_542361185_VFRJWpR2FH5OiAEVveWO7oZnfSccZfD3.jpg?alt=media&token=cbfadc56-5aa3-4f74-8cbe-ab682f7b4b8d',
               email: '',
               dob: data.dob,
               zipcode: data.zipcode,
