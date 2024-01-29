@@ -108,6 +108,13 @@ router.post('/verifyTwilioOTP', async (req, res)=>{
     // res.json()
 });
 
+router.post('/updateMyLocation', async(req, res)=>{
+    console.log(req.body)
+    response = await UserServices.updateLocation(req.body);
+    res.status(200).send(response)
+    // response = await 
+})
+
   
 
 module.exports = router;

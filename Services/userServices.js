@@ -25,6 +25,29 @@ class UserService{
 
     }
 
+    static async updateLocation(data){
+        try{
+            const user = await User.findByIdAndUpdate(
+                data.userid,
+                {
+                    $set: {
+                        location: data.location
+                    }
+                } 
+            )
+            if(user){
+                return {success:true, message:"Location updated"}
+            }else{
+                return {success:false, message: "Could not update location"};
+            }
+
+        }catch(e){
+            console.log(e)
+            return {success:false, message: "Some error occured"};
+
+        }
+    }
+
     
 }
 

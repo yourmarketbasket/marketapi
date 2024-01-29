@@ -444,7 +444,7 @@ class Payments{
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${pesapaltoken.token}`
                 },
-            };
+            };  
         
             const postData = JSON.stringify({
                 "id": info.transactionID,
