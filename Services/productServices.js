@@ -127,6 +127,24 @@ class ProductService {
             }
         
     }
+
+    static async clearCart(data){
+        try{
+
+            const cart = await Cart.findOneAndDelete({buyerid: data.buyerid});
+            if(cart){
+                return {success:true, message:"Cart cleared successfully"};
+            }else{
+                return {success:false, message:"Failed to clear cart"};
+            }
+
+        }catch(e){
+            return {success:false, message:e};
+            
+
+        }
+        
+    }
     
     
     static async availableProductQuantityForUser(data) {

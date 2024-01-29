@@ -46,6 +46,9 @@ router.get('/productDetails/:id', async(req, res)=>{
 router.post('/decreaseCartItemByOne', async(req,res)=>{
     res.json(await ProductService.reduceQttyByOne(req.body))
 })
+router.post('/clearcart', async(req,res)=>{
+    res.json(await ProductService.clearCart(req.body))
+})
 
 router.post('/increaseCartItemByOne', async(req,res)=>{
     res.json(await ProductService.increaseQttyByOne(req.body))
