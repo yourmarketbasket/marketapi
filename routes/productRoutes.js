@@ -50,6 +50,12 @@ router.post('/clearcart', async(req,res)=>{
     res.json(await ProductService.clearCart(req.body))
 })
 
+router.post('/getDTD', async(req, res)=>{
+    const result = await ProductService.getDistanceAndTimeData(req.body.userid);
+   
+    res.status(200).json(result);
+})
+
 router.post('/increaseCartItemByOne', async(req,res)=>{
     res.json(await ProductService.increaseQttyByOne(req.body))
 })

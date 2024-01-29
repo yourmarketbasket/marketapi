@@ -1,9 +1,21 @@
 const Product = require('../models/products');
 const Cart = require('../models/cart');
 const Order = require('../models/orders');
+const Store = require('../models/stores');
+const User = require('../models/user');
+const axios = require('axios');
+const https = require('https');
+
+
 const Payments = require('./paymentService');
 
 class ProductService {
+    constructor() {
+        this.convertValue = this.convertValue.bind(this);
+    }
+
+
+
     static async addToCart(data) {
             try {
                 // Find the user's existing cart or create a new one if it doesn't exist
@@ -371,6 +383,122 @@ class ProductService {
     static async paystackWebhook(data){
         return data
     }
+    static async getDistanceAndTimeData(userid) {
+        try {
+            const origins = [];
+            const user = await User.findOne({ _id: userid });
+            const cart = await Cart.findOne({ buyerid: userid });
+
+            if (cart && cart.products && cart.products.length > 0) {
+                const productIds = cart.products.map(item => item.productid);
+
+                for (const productId of productIds) {
+                    const product = await Product.findOne({ _id: productId });
+
+                    if (product) {
+                        const store = await Store.findOne({ _id: product.storeid });
+
+                        if (store && store.location) {
+                            const storeLocationObject = {
+                                lat: store.location.latitude,
+                                lng: store.location.longitude,
+                            };
+                            origins.push(storeLocationObject);
+                        }
+                    }
+                }
+
+                const uniqueOrigins = Array.from(new Set(origins.map(JSON.stringify))).map(JSON.parse);
+                const destination = {
+                    lat: user.location.latitude,
+                    lng: user.location.longitude,
+                };
+
+                const apiKey = 'AIzaSyDdvqTHmz_HwPar6XeBj8AiMxwzmFdqC1w'; // Replace with your actual API key
+                const originsQueryString = uniqueOrigins.map(location => `${location.lat},${location.lng}`).join('|');
+                const url = `https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${destination.lat},${destination.lng}&origins=${originsQueryString}&units=imperial&key=${apiKey}`;
+
+                // Use synchronous https.get instead of promisified version
+                const response = await new Promise((resolve, reject) => {
+                    https.get(url, (res) => {
+                        let data = '';
+
+                        res.on('data', (chunk) => {
+                            data += chunk;
+                        });
+
+                        res.on('end', () => {
+                            resolve(data);
+                        });
+
+                        res.on('error', (error) => {
+                            reject(error);
+                        });
+                    });
+                });
+
+                try {
+                    const distanceMatrixData = JSON.parse(response);
+
+                    let totalDistance = 0;
+                    let totalTime = 0;
+
+                    distanceMatrixData.rows.forEach(element => {
+                        totalDistance += element.elements[0].distance.value;
+                        totalTime += element.elements[0].duration.value;
+                    });
+
+                    return {
+                        success: true,
+                        data: {
+                            duration: ProductService.convertValue(parseInt(totalTime), 'duration'),
+                            distance: ProductService.convertValue(parseInt(totalDistance), 'distance')
+                        }
+                    };
+                } catch (parseError) {
+                    return { success: false, message: 'Error parsing distance matrix data' };
+                }
+            } else {
+                return { success: false, message: "Error Occurred" };
+            }
+        } catch (error) {
+            return { success: false, message: error };
+        }
+    }
+
+
+      static convertValue(value, identifier){
+        if (typeof value !== 'number' || (identifier !== 'duration' && identifier !== 'distance')) {
+          return { error: 'Invalid input' };
+        }
+      
+        const result = {};
+      
+        if (identifier === 'distance') {
+          if (value >= 1000) {
+            const kilometers = value / 1000;
+            result.value = kilometers.toFixed(2) + ' km';
+            result.logisticsFee = 1 * kilometers;
+          } else {
+            result.value = value.toFixed(2) + ' meters';
+            result.logisticsFee = 0; // No fee for distances less than 1000 meters
+          }
+        } else if (identifier === 'duration') {
+          if (value >= 3600) {
+            const hours = Math.floor(value / 3600);
+            const remainingMinutes = Math.floor((value % 3600) / 60);
+            result.value = `${hours} hours ${remainingMinutes} minutes`;
+          } else if (value >= 60) {
+            const minutes = Math.floor(value / 60);
+            const remainingSeconds = value % 60;
+            result.value = `${minutes} minutes ${remainingSeconds} seconds`;
+          } else {
+            result.value = value + ' seconds';
+          }
+        }
+      
+        return result;
+      }
    
     
 
