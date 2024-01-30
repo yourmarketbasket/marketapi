@@ -9,6 +9,9 @@ const verifySid = process.env.TWILIO_VERIFY_SID;
 const client = require("twilio")(accountSid, authToken);
 
 class AuthService {
+  static async testFunction(io){
+    io.emit('anotherevent', 'Hello from the server!');
+  }
     
     // login and authenticate
   static async authenticateUser(phone, password) {

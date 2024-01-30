@@ -15,6 +15,7 @@ const io = socketIo(server,{
   }
 });
 
+
 const router = express.Router();
 const bodyparser = require('body-parser');
 const dotenv = require('dotenv');
@@ -31,11 +32,12 @@ const mongoose = require('./db');
 const port = 3000;
 // import route files
 const userRoutes = require('./routes/userRoutes');
-const productRoutes = require('./routes/productRoutes')
+const productRoutes = require('./routes/productRoutes')(io);
 const paymentRoutes = require('./routes/paymentRoutes')
 const darajaApiRoutes = require('./routes/darajaApiRoutes')
 const sellerRoutes = require('./routes/sellerRoutes')
-const notificationRoutes = require('./routes/notifyRoutes')
+const notificationRoutes = require('./routes/notifyRoutes');
+const authRoutes = require('./routes/auth')(io);
 
 // const authRoutes = require('./routes/auth')
 app.use(cors())
@@ -44,6 +46,7 @@ app.use(bodyparser.urlencoded({ extended: false }));
 
 // routes
 app.use('/api/users', userRoutes)
+app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes)
 app.use('/api/payments', paymentRoutes)
 app.use('/api/darajaUrls', darajaApiRoutes)
@@ -426,46 +429,7 @@ app.delete('/deleteProduct/:id', async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 });
-// verify otp
-// app.post('/verify', async (req, res) => {
-// // termii integration
-//   const phone = req.body.phone;
-//   var data = {
-//     "api_key": process.env.TERMII_API_KEY,
-//     "pin_id": req.body.codeid,
-//     "pin": req.body.otp
-//   };
-//   var options = {
-//     'method': 'POST',
-//     'url': 'https://api.ng.termii.com/api/sms/otp/verify',
-//     'headers': {
-//     'Content-Type': ['application/json', 'application/json']
-//     },
-//     body: JSON.stringify(data)
 
-//   };
-//   request(options, async function (error, response) { 
-//   if (error) throw new Error(error);
-//     const responseData = JSON.parse(response.body);
-//     if(responseData && responseData.verified){
-//       res.status(200).send({ message: `Verification successful`, success: true});
-//       // upldate verified status
-//       User.findOneAndUpdate({ phone: phone }, { $set: { verified: true } })
-//           .then(() => {
-//           })
-//           .catch((err) => {
-//           });
-//     }else if(responseData.verified === "Expired"){
-//       res.send({message: 'OTP Expired', success: false})
-//     }else{
-//       res.send({ message: 'Invalid code', success: false });
-//     }
-//   });
-
-  
-
-  
-// });
 // get store details
 app.get('/getStoreDetails/:id', async (req, res) => {
   const storeid = req.params.id;
@@ -573,3 +537,6 @@ io.on('connection', (socket) => {
 server.listen(port, () => {
     console.log(`Server is running on localhost:${port}`);
 });
+
+// export io
+module.exports = io;

@@ -7,16 +7,13 @@ const axios = require('axios');
 const https = require('https');
 
 
+
+
 const Payments = require('./paymentService');
 
-class ProductService {
-    constructor() {
-        this.convertValue = this.convertValue.bind(this);
-    }
+class ProductService {  
 
-
-
-    static async addToCart(data) {
+    static async addToCart(data, io) {
             try {
                 // Find the user's existing cart or create a new one if it doesn't exist
                 const existingCart = await Cart.findOne({ buyerid: data.userid });
@@ -50,6 +47,9 @@ class ProductService {
                         });
             
                         if (newCart) {
+                            io.emit('cartoperationsevent', {
+                                userid: data.userid,
+                            })
                             return {success:true,available:available, message: "New Cart Created with the Product"}
                         } else {
                             return {success:false, available:available, message: "Something went wrong while creating the cart."}
@@ -85,7 +85,10 @@ class ProductService {
                             );
                             if (updateProduct) {
                                 const targetProduct = updateProduct.products.find(product=>product.productid === data.productid);
-                                if(targetProduct){                        
+                                if(targetProduct){  
+                                    io.emit('cartoperationsevent', {
+                                        userid: data.userid,
+                                    })                      
                                     return { success: true, available: targetProduct.available-data.quantity, message: "Cart Product Updated" };
                                 } else {
                                     return { success: false, available: targetProduct.available, message: "Error: Could not update cart product!" };
@@ -125,6 +128,9 @@ class ProductService {
                         const addNewItem = await existingCart.save();
     
                         if (addNewItem) {
+                            io.emit('cartoperationsevent', {
+                                userid: data.userid,
+                            })
                             return {success:true,available:available, message: "New Product Added to Cart"}
                         } else {
                             return {success:false,available:available, message: "Error adding product to cart"}
@@ -134,23 +140,32 @@ class ProductService {
                     
                 }
             } catch (error) {
-                // console.log(error)
+                console.log(error)
                 return {success: false, message: error};
             }
         
     }
 
-    static async clearCart(data){
+    static async clearCart(data, io){
         try{
 
             const cart = await Cart.findOneAndDelete({buyerid: data.buyerid});
             if(cart){
+                io.emit('cartoperationsevent', {
+                    userid: data.buyerid,
+                })
                 return {success:true, message:"Cart cleared successfully"};
             }else{
+                io.emit('cartoperationsevent', {
+                    userid: data.buyerid,
+                })
                 return {success:false, message:"Failed to clear cart"};
             }
 
         }catch(e){
+            io.emit('cartoperationsevent', {
+                userid: data.buyerid,
+            })
             return {success:false, message:e};
             
 
@@ -191,7 +206,7 @@ class ProductService {
         }
     }
 
-    static async editCartProductQuantity(data) {
+    static async editCartProductQuantity(data, io) {
         try{
             const cart = await Cart.findOne({buyerid: data.buyerid});
             const product = await cart.products.find(item=>item.productid === data.productid);
@@ -218,6 +233,9 @@ class ProductService {
                             }
                         }
                     );
+                    io.emit('cartoperationsevent', {
+                        userid: data.buyerid,
+                    })
                     return { success: true, message: 'Product quantity updated' };
 
                 }else{
@@ -239,6 +257,7 @@ class ProductService {
 
     static async numberOfItemsInCart(userid){
         const num = await Cart.findOne({buyerid:userid});
+        
         if(num){
             // console.log(num[0].items)
             return {
@@ -247,7 +266,8 @@ class ProductService {
             };
         }else{
             return {
-                success: false
+                success: false,
+                count:0
             }
         }
     }
@@ -268,7 +288,7 @@ class ProductService {
         }
     }// Update the path accordingly
 
-    static async reduceQttyByOne(data) {
+    static async reduceQttyByOne(data, io) {
         try {
             // Find the cart and the specific product
             const cart = await Cart.findOne({ buyerid:data.buyerid });
@@ -295,6 +315,9 @@ class ProductService {
                         $inc: { 'products.$.quantity': -1, 'products.$.available': 1, 'products.$.totalCost': -thiscost, amount: -thiscost  },
                     }
                 );
+                io.emit('cartoperationsevent', {
+                    userid: data.buyerid,
+                })
 
                 return { success: true, message: 'Product quantity reduced by one' };
             } 
@@ -303,7 +326,7 @@ class ProductService {
         }
     }
 
-    static async increaseQttyByOne(data){
+    static async increaseQttyByOne(data, io){
         // console.log(data)
         try {
             // Find the cart and the specific product
@@ -331,6 +354,9 @@ class ProductService {
                         $inc: { 'products.$.quantity': 1, 'products.$.available': -1, 'products.$.totalCost': thiscost, amount: thiscost  },
                     }
                 );
+                io.emit('cartoperationsevent', {
+                    userid: data.buyerid,
+                })
 
                 return { success: true, message: 'Product quantity increased by one' };
             } 
@@ -340,7 +366,7 @@ class ProductService {
 
     }
 
-    static async removeCartItem(data){
+    static async removeCartItem(data, io){
         try {
             // Find the cart and the specific product
             const cart = await Cart.findOne({ buyerid:data.buyerid });
@@ -360,8 +386,14 @@ class ProductService {
                     }
                 );
                 if(remove){
+                    io.emit('cartoperationsevent', {
+                        userid: data.buyerid,
+                    })
                     // delete the cart if the amount is zero
                     if((cart.amount-product.totalCost) == 0){
+                        io.emit('cartoperationsevent', {
+                            userid: data.buyerid,
+                        })
                         await Cart.deleteOne({buyerid:data.buyerid});
                         return { success: true, message: 'Product and Cart deleted' };
                     }
