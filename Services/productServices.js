@@ -47,9 +47,7 @@ class ProductService {
                         });
             
                         if (newCart) {
-                            io.emit('cartoperationsevent', {
-                                userid: data.userid,
-                            })
+                            ProductService.emitEventMethod(io, 'cartoperationsevent', data.userid)                            
                             return {success:true,available:available, message: "New Cart Created with the Product"}
                         } else {
                             return {success:false, available:available, message: "Something went wrong while creating the cart."}
@@ -86,9 +84,7 @@ class ProductService {
                             if (updateProduct) {
                                 const targetProduct = updateProduct.products.find(product=>product.productid === data.productid);
                                 if(targetProduct){  
-                                    io.emit('cartoperationsevent', {
-                                        userid: data.userid,
-                                    })                      
+                                    ProductService.emitEventMethod(io, 'cartoperationsevent', data.userid)                     
                                     return { success: true, available: targetProduct.available-data.quantity, message: "Cart Product Updated" };
                                 } else {
                                     return { success: false, available: targetProduct.available, message: "Error: Could not update cart product!" };
@@ -128,9 +124,7 @@ class ProductService {
                         const addNewItem = await existingCart.save();
     
                         if (addNewItem) {
-                            io.emit('cartoperationsevent', {
-                                userid: data.userid,
-                            })
+                            ProductService.emitEventMethod(io, 'cartoperationsevent', data.userid)
                             return {success:true,available:available, message: "New Product Added to Cart"}
                         } else {
                             return {success:false,available:available, message: "Error adding product to cart"}
@@ -233,9 +227,7 @@ class ProductService {
                             }
                         }
                     );
-                    io.emit('cartoperationsevent', {
-                        userid: data.buyerid,
-                    })
+                    ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)                    
                     return { success: true, message: 'Product quantity updated' };
 
                 }else{
@@ -315,9 +307,8 @@ class ProductService {
                         $inc: { 'products.$.quantity': -1, 'products.$.available': 1, 'products.$.totalCost': -thiscost, amount: -thiscost  },
                     }
                 );
-                io.emit('cartoperationsevent', {
-                    userid: data.buyerid,
-                })
+                ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)                   
+                
 
                 return { success: true, message: 'Product quantity reduced by one' };
             } 
@@ -354,9 +345,8 @@ class ProductService {
                         $inc: { 'products.$.quantity': 1, 'products.$.available': -1, 'products.$.totalCost': thiscost, amount: thiscost  },
                     }
                 );
-                io.emit('cartoperationsevent', {
-                    userid: data.buyerid,
-                })
+                ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)                   
+              
 
                 return { success: true, message: 'Product quantity increased by one' };
             } 
@@ -386,14 +376,11 @@ class ProductService {
                     }
                 );
                 if(remove){
-                    io.emit('cartoperationsevent', {
-                        userid: data.buyerid,
-                    })
+                    ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)                   
+
                     // delete the cart if the amount is zero
                     if((cart.amount-product.totalCost) == 0){
-                        io.emit('cartoperationsevent', {
-                            userid: data.buyerid,
-                        })
+                        ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)
                         await Cart.deleteOne({buyerid:data.buyerid});
                         return { success: true, message: 'Product and Cart deleted' };
                     }
@@ -499,38 +486,45 @@ class ProductService {
     }
 
 
-      static convertValue(value, identifier){
-        if (typeof value !== 'number' || (identifier !== 'duration' && identifier !== 'distance')) {
-          return { error: 'Invalid input' };
+    static convertValue(value, identifier){
+    if (typeof value !== 'number' || (identifier !== 'duration' && identifier !== 'distance')) {
+        return { error: 'Invalid input' };
+    }
+    
+    const result = {};
+    
+    if (identifier === 'distance') {
+        if (value >= 1000) {
+        const kilometers = value / 1000;
+        result.value = kilometers.toFixed(2) + ' km';
+        result.logisticsFee = 1 * kilometers;
+        } else {
+        result.value = value.toFixed(2) + ' meters';
+        result.logisticsFee = 0; // No fee for distances less than 1000 meters
         }
-      
-        const result = {};
-      
-        if (identifier === 'distance') {
-          if (value >= 1000) {
-            const kilometers = value / 1000;
-            result.value = kilometers.toFixed(2) + ' km';
-            result.logisticsFee = 1 * kilometers;
-          } else {
-            result.value = value.toFixed(2) + ' meters';
-            result.logisticsFee = 0; // No fee for distances less than 1000 meters
-          }
-        } else if (identifier === 'duration') {
-          if (value >= 3600) {
-            const hours = Math.floor(value / 3600);
-            const remainingMinutes = Math.floor((value % 3600) / 60);
-            result.value = `${hours} hours ${remainingMinutes} minutes`;
-          } else if (value >= 60) {
-            const minutes = Math.floor(value / 60);
-            const remainingSeconds = value % 60;
-            result.value = `${minutes} minutes ${remainingSeconds} seconds`;
-          } else {
-            result.value = value + ' seconds';
-          }
+    } else if (identifier === 'duration') {
+        if (value >= 3600) {
+        const hours = Math.floor(value / 3600);
+        const remainingMinutes = Math.floor((value % 3600) / 60);
+        result.value = `${hours} hours ${remainingMinutes} minutes`;
+        } else if (value >= 60) {
+        const minutes = Math.floor(value / 60);
+        const remainingSeconds = value % 60;
+        result.value = `${minutes} minutes ${remainingSeconds} seconds`;
+        } else {
+        result.value = value + ' seconds';
         }
-      
-        return result;
-      }
+    }
+    
+    return result;
+    }
+
+    static emitEventMethod(io, eventname, userid){
+        io.emit(eventname, {
+            userid: userid,
+        })
+
+    }
    
     
 
