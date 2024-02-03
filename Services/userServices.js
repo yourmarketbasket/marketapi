@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const request = require('request');
 const dotenv = require('dotenv');
+const EventEmitService = require('./eventService');
 class UserService{
 
     // change avatar
@@ -25,7 +26,7 @@ class UserService{
 
     }
 
-    static async updateLocation(data){
+    static async updateLocation(data, io){
         try{
             const user = await User.findByIdAndUpdate(
                 data.userid,
@@ -36,6 +37,7 @@ class UserService{
                 } 
             )
             if(user){
+                EventEmitService.emitEventMethod(io, "locationevent", {userid:data.userid, message: "Location Updated Successfully"});
                 return {success:true, message:"Location updated"}
             }else{
                 return {success:false, message: "Could not update location"};

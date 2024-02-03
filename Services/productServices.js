@@ -10,6 +10,7 @@ const https = require('https');
 
 
 const Payments = require('./paymentService');
+const EventEmitService = require('./eventService');
 
 class ProductService {  
 
@@ -47,7 +48,7 @@ class ProductService {
                         });
             
                         if (newCart) {
-                            ProductService.emitEventMethod(io, 'cartoperationsevent', data.userid)                            
+                            EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.userid, message:"New Cart Created with the Product" })        
                             return {success:true,available:available, message: "New Cart Created with the Product"}
                         } else {
                             return {success:false, available:available, message: "Something went wrong while creating the cart."}
@@ -84,7 +85,7 @@ class ProductService {
                             if (updateProduct) {
                                 const targetProduct = updateProduct.products.find(product=>product.productid === data.productid);
                                 if(targetProduct){  
-                                    ProductService.emitEventMethod(io, 'cartoperationsevent', data.userid)                     
+                                    EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.userid, message:"Cart Product Updated" })          
                                     return { success: true, available: targetProduct.available-data.quantity, message: "Cart Product Updated" };
                                 } else {
                                     return { success: false, available: targetProduct.available, message: "Error: Could not update cart product!" };
@@ -124,7 +125,7 @@ class ProductService {
                         const addNewItem = await existingCart.save();
     
                         if (addNewItem) {
-                            ProductService.emitEventMethod(io, 'cartoperationsevent', data.userid)
+                            EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.userid, message:"New Product Added to Cart" })   
                             return {success:true,available:available, message: "New Product Added to Cart"}
                         } else {
                             return {success:false,available:available, message: "Error adding product to cart"}
@@ -145,9 +146,9 @@ class ProductService {
 
             const cart = await Cart.findOneAndDelete({buyerid: data.buyerid});
             if(cart){
-                io.emit('cartoperationsevent', {
-                    userid: data.buyerid,
-                })
+                EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.buyerid, message:"Cart cleared successfully" })   
+                
+               
                 return {success:true, message:"Cart cleared successfully"};
             }else{
                 io.emit('cartoperationsevent', {
@@ -157,9 +158,8 @@ class ProductService {
             }
 
         }catch(e){
-            io.emit('cartoperationsevent', {
-                userid: data.buyerid,
-            })
+            EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.buyerid, message:e })   
+
             return {success:false, message:e};
             
 
@@ -227,7 +227,7 @@ class ProductService {
                             }
                         }
                     );
-                    ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)                    
+                    EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.buyerid, message:'Product quantity updated' })      
                     return { success: true, message: 'Product quantity updated' };
 
                 }else{
@@ -307,8 +307,7 @@ class ProductService {
                         $inc: { 'products.$.quantity': -1, 'products.$.available': 1, 'products.$.totalCost': -thiscost, amount: -thiscost  },
                     }
                 );
-                ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)                   
-                
+                EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.buyerid, message:'Product quantity reduced by one' })      
 
                 return { success: true, message: 'Product quantity reduced by one' };
             } 
@@ -345,7 +344,8 @@ class ProductService {
                         $inc: { 'products.$.quantity': 1, 'products.$.available': -1, 'products.$.totalCost': thiscost, amount: thiscost  },
                     }
                 );
-                ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)                   
+                EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.buyerid, message:'Product quantity increased by one' })     
+                  
               
 
                 return { success: true, message: 'Product quantity increased by one' };
@@ -376,13 +376,14 @@ class ProductService {
                     }
                 );
                 if(remove){
-                    ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)                   
+                    EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.buyerid, message:'Product deleted' })  
+                  
 
                     // delete the cart if the amount is zero
                     if((cart.amount-product.totalCost) == 0){
-                        ProductService.emitEventMethod(io, 'cartoperationsevent', data.buyerid)
+                        EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.buyerid, message:'Cart Cleared' })  
                         await Cart.deleteOne({buyerid:data.buyerid});
-                        return { success: true, message: 'Product and Cart deleted' };
+                        return { success: true, message: 'Cart Cleared' };
                     }
                     return { success: true, message: 'Product deleted from Cart' };           
 

@@ -31,7 +31,7 @@ dotenv.config();
 const mongoose = require('./db');
 const port = 3000;
 // import route files
-const userRoutes = require('./routes/userRoutes');
+const userRoutes = require('./routes/userRoutes')(io);
 const productRoutes = require('./routes/productRoutes')(io);
 const paymentRoutes = require('./routes/paymentRoutes')
 const darajaApiRoutes = require('./routes/darajaApiRoutes')
