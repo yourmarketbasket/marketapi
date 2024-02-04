@@ -47,6 +47,12 @@ module.exports = (io)=>{
     router.post('/clearcart', async(req,res)=>{
         res.json(await ProductService.clearCart(req.body, io))
     })
+    router.post('/addProductView', async(req,res)=>{
+        res.json(await ProductService.addProductView(req.body, io))
+    })
+    router.post('/getProductDetails', async(req,res)=>{
+        res.json(await ProductService.getProductDetails(req.body, io))
+    })
     
     router.post('/getDTD', async(req, res)=>{
         const result = await ProductService.getDistanceAndTimeData(req.body.userid);

@@ -605,7 +605,7 @@ const startServer = () => {
           process.exit(1); // Exit the process if an error occurs
         }
       } else {
-        console.log(`Server is running on localhost:${port}`);
+        console.log(`Server is running on ${process.platform} localhost:${port}`);
         serverStarted = true;
       }
     });
@@ -623,5 +623,4 @@ server.on('error', (error) => {
   }
 });
 
-// Example usage
 startServer();

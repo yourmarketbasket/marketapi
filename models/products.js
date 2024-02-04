@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-
-const productSchema = new mongoose.Schema({
+const Schema = mongoose.Schema;
+const productSchema = new Schema({
     name: {
         type: String,
         required: true,
@@ -78,11 +78,29 @@ const productSchema = new mongoose.Schema({
     discount: {
         type: Number
     },
-    rating: {
+    reviews: {
+        type: [Schema.Types.Mixed],
+    },
+    popular: {
+        type: Number
+    }, 
+    trend: {
         type: Number
     },
-    
+    views: [
+        {
+          totalViews: Number,
+          users: [
+            {
+              userid: String,
+              views: Number,
+            },
+          ],
+        },
+    ],
 });
+
+
 
 const Product = mongoose.model('Product', productSchema);
 module.exports = Product;

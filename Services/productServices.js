@@ -360,7 +360,7 @@ class ProductService {
         try {
             // Find the cart and the specific product
             const cart = await Cart.findOne({ buyerid:data.buyerid });
-            const product = cart.products.find(item => item.productid === data.productid);
+            const product = await cart.products.find(item => item.productid === data.productid);
     
             if (!product) {
                 return { success: false, message: 'Product not found in the cart!' };
@@ -527,6 +527,97 @@ class ProductService {
 
     }
 
+    static async getProductDetails(data, io){
+        const product = await Product.find({_id:data.pid});
+        if(product){
+            const recordView = await ProductService.addProductView(data,io);
+            if(recordView.success){
+                return {productDetails: product, success:true};
+            }else{
+                return {message: "Error recording view",productDetails: product, success:true};
+            }
+        }else{
+            return {success: false};
+        }
+
+    }
+
+    static async addProductView(data, io) {
+        try {
+            const product = await Product.findOne({ _id: data.pid });
+    
+            if (product) {
+                // Check if views exist
+                if (!product.views || product.views.length === 0) {
+                    // Create a new view object
+                    const newView = {
+                        totalViews: 1,
+                        users: [
+                            {
+                                userid: data.uid,
+                                views: 1
+                            }
+                        ]
+                    };
+    
+                    // Update the product details
+                    await Product.updateOne(
+                        { _id: data.pid },
+                        { $set: { views: [newView] } }
+                    );
+    
+                    return { success: true, message: "Product Views Updated." };
+                } else {
+                    // Check if the user already exists in views
+                    const existingUserView = product.views.find(view => view.users.some(user => user.userid === data.uid));
+    
+                    if (existingUserView) {
+                        // User exists, increment the view count
+                        await Product.updateOne(
+                            { _id: data.pid, "views.users.userid": data.uid },
+                            {
+                                $inc: {
+                                    "views.$[outer].users.$[inner].views": 1,
+                                    "views.$[outer].totalViews": 1
+                                }
+                            },
+                            {
+                                arrayFilters: [
+                                    { "outer.users.userid": data.uid },
+                                    { "inner.userid": data.uid }
+                                ]
+                            }
+                        );
+                    } else {
+                        // User does not exist in views, add a new user entry within the original object
+                        await Product.updateOne(
+                            { _id: data.pid },
+                            {
+                                $push: {
+                                    "views.0.users": {
+                                        userid: data.uid,
+                                        views: 1
+                                    }
+                                },
+                                $inc: {
+                                    "views.0.totalViews": 1
+                                }
+                            }
+                        );
+                    }
+    
+                    return { success: true, message: "Product Views Updated." };
+                }
+            } else {
+                return { success: false, message: "Product not found." };
+            }
+        } catch (e) {
+            console.error(e);
+            return { success: false, message: e.message || "An error occurred." };
+        }
+    }
+    
+    
     
 
 
