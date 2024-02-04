@@ -2,6 +2,8 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const request = require('request');
+const { spawn } = require('child_process');
+
 // const ip = '192.168.88.207';
 
 let otpid = '';
@@ -502,41 +504,124 @@ app.get('/getProductDetails/:id', async(req, res)=>{
       res.status(404).send({success: false});
     }
 });
+function findAndKillProcessesUsingPort(port, callback) {
+  try {
+    const command = getNetstatCommand(port);
+    const childProcess = spawn(command, { shell: true });
 
+    let stdout = '';
 
+    childProcess.stdout.on('data', (data) => {
+      stdout += data;
+    });
 
-// socket io
-io.on('connection', (socket) => {
-  io.to(socket.id).emit('connected', socket.id);
-  // communicate when a store is created
-  socket.on('store-created', (data) => {
-    io.to(socket.id).emit('new store created', data);
-  });
-  socket.on('getManageStoreID', (data) => {
-    io.to(socket.id).emit('sendManageStoreID', data);
-  });
-  socket.on('closeStore', (data) => {
-    io.to(socket.id).emit('closeThisStore', data);
-  });
-  // product added
-  socket.on('productadded', (data) => {
-    io.to(socket.id).emit('new product added', data);
-  });
-  socket.on('toggle-sidebar', (data) => {
-    io.to(socket.id).emit('toggleSideBar', data);
-  });
-  socket.on('getStoreDetails', async (data) => {
-    // get the data from the mongo database
-    const store =  await Store.find({ _id: data }); 
-    io.to(socket.id).emit('sendStoreDetails', store);
-  });
+    childProcess.on('close', (code) => {
+      if (code !== 0) {
+        console.error(`Error finding processes: Command exited with code ${code}`);
+      }
+    });
+
+    // Process the output of the command and take appropriate actions
+    childProcess.on('exit', () => {
+      const processInfoLines = stdout.trim().split('\n');
+      const processIds = getProcessIds(processInfoLines);
+
+      if (processIds.length > 0) {
+        console.log(`Processes using port ${port}:`, processIds);
+
+        processIds.forEach((pid) => {
+          console.log(`Attempting to kill process ${pid}...`);
+          if (processExists(pid)) {
+            process.kill(Number(pid));
+            console.log(`Process ${pid} killed successfully.`);
+          } else {
+            console.log(`Process ${pid} does not exist.`);
+          }
+        });
+
+        // Notify the server to restart only after killing processes
+        console.log('Notifying the server to restart...');
+        callback();
+      } else {
+        console.log(`No processes found using port ${port}.`);
+
+        // Notify the server to restart directly if no processes were found
+        console.log('Notifying the server to restart...');
+        callback();
+      }
+    });
+  } catch (error) {
+    console.error('Error finding and killing processes:', error);
+  }
+}
+
+// Function to check if a process with the given PID exists
+function processExists(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === 'EPERM';
+  }
+}
+
+// Function to get the appropriate netstat/lsof command based on the operating system
+function getNetstatCommand(port) {
+  switch (process.platform) {
+    case 'win32':
+      return `netstat -ano | find ":${port}" | find "LISTENING"`;
+    case 'darwin':
+    case 'linux':
+      return `lsof -i:${port} -t -sTCP:LISTEN,ESTABLISHED`;
+    default:
+      throw new Error(`Unsupported operating system: ${process.platform}`);
+  }
+}
+
+// Function to extract process IDs from the output of the netstat/lsof command
+function getProcessIds(processInfoLines) {
+  return processInfoLines
+    .filter(line => line.includes(`:${port}`) && (line.includes('LISTEN') || line.includes('ESTABLISHED')))
+    .map(line => {
+      const parts = line.trim().split(/\s+/);
+      return parts[parts.length - 1];
+    })
+    .filter(pid => !isNaN(pid))
+    .filter(Boolean);
+}
+
+// Server setup
+let serverStarted = false;
+
+const startServer = () => {
+  if (!serverStarted) {
+    server.listen(port, (error) => {
+      if (error) {
+        if (error.code === 'EADDRINUSE') {
+          console.log(`Port ${port} is already in use. Attempting to free up the port...`);
+          findAndKillProcessesUsingPort(port, startServer);
+        } else {
+          console.error('Error starting server:', error);
+          process.exit(1); // Exit the process if an error occurs
+        }
+      } else {
+        console.log(`Server is running on localhost:${port}`);
+        serverStarted = true;
+      }
+    });
+  }
+};
+
+// Handle unhandled 'error' events to avoid crashing
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.log(`Port ${port} is already in use. Attempting to free up the port...`);
+    findAndKillProcessesUsingPort(port, startServer);
+  } else {
+    console.error('Server error:', error);
+    process.exit(1); // Exit the process if an error occurs
+  }
 });
 
-
-// configure the port
-server.listen(port, () => {
-    console.log(`Server is running on localhost:${port}`);
-});
-
-// export io
-module.exports = io;
+// Example usage
+startServer();

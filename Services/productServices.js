@@ -520,12 +520,17 @@ class ProductService {
     return result;
     }
 
-    static emitEventMethod(io, eventname, userid){
+    static async emitEventMethod(io, eventname, userid){
         io.emit(eventname, {
             userid: userid,
         })
 
     }
+
+    
+
+
+
    
     
 
