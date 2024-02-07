@@ -122,27 +122,27 @@ async function sendOtp(zip, phone) {
 
 }
 // reject or approve listed product items
-app.post('/reviewlisteditem', async(req, res)=>{
-  const product = await Product.findOne({_id:req.body.id});
-  if(product){
-    const verified = product.verified;
-    if(verified){
-      res.status(200).send({message:"Product already verified, Action not completed!"})
-    }else{
-      const filter = {_id: req.body.id};
-      const update = { approved: req.body.action=="approve",rejected:req.body.action=="reject", verified: true, rejectionReason:req.body.reason};
-      const updateproduct = await Product.findOneAndUpdate(filter, update);
+// app.post('/reviewlisteditem', async(req, res)=>{
+//   const product = await Product.findOne({_id:req.body.id});
+//   if(product){
+//     const verified = product.verified;
+//     if(verified){
+//       res.status(200).send({message:"Product already verified, Action not completed!"})
+//     }else{
+//       const filter = {_id: req.body.id};
+//       const update = { approved: req.body.action=="approve",rejected:req.body.action=="reject", verified: true, rejectionReason:req.body.reason};
+//       const updateproduct = await Product.findOneAndUpdate(filter, update);
     
-      if(updateproduct){
-        res.status(200).send({message: `${req.body.action.toUpperCase()} Action completed successfully`, success: true});
-      }else{
-        res.send({message: "Action Failed", success: false})
-      }
-    }
+//       if(updateproduct){
+//         res.status(200).send({message: `${req.body.action.toUpperCase()} Action completed successfully`, success: true});
+//       }else{
+//         res.send({message: "Action Failed", success: false})
+//       }
+//     }
     
-  }
+//   }
 
-})
+// })
 
 app.get('/unapprovedproducts', async(req, res)=>{
   try{
@@ -235,33 +235,33 @@ app.get('/getStores/:id', async (req, res) => {
   }
 });
 // add product
-app.post('/addProduct', async (req, res) => {
-  const data = req.body;
-  // add the data to mongodb
-    const product = new Product({
-      name: data.name,
-      brand: data.brand,
-      category: data.category,
-      subcategory: data.subcategory,
-      description: data.description,
-      features: data.features,
-      quantity: data.quantity,
-      model: data.model,
-      bp: data.bp,
-      sp: data.sp,
-      avatar: data.images,
-      storeid: data.storeid,
-      discount:0
-    });
-    try{
-      const newProduct = await product.save();
-      res.send({ message: 'Product added successfully', success: true, data: newProduct });
-    }catch(error){
-      console.error(error);
-      res.send({ message: 'Product not Created.', success: false });
-    }
+// app.post('/addProduct', async (req, res) => {
+//   const data = req.body;
+//   // add the data to mongodb
+//     const product = new Product({
+//       name: data.name,
+//       brand: data.brand,
+//       category: data.category,
+//       subcategory: data.subcategory,
+//       description: data.description,
+//       features: data.features,
+//       quantity: data.quantity,
+//       model: data.model,
+//       bp: data.bp,
+//       sp: data.sp,
+//       avatar: data.images,
+//       storeid: data.storeid,
+//       discount:0
+//     });
+//     try{
+//       const newProduct = await product.save();
+//       res.send({ message: 'Product added successfully', success: true, data: newProduct });
+//     }catch(error){
+//       console.error(error);
+//       res.send({ message: 'Product not Created.', success: false });
+//     }
 
-});
+// });
 // check if advanced action is allowed
 app.post('/advancedAction', async (req, res)=>{
   const userId = req.body.id;

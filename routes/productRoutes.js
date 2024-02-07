@@ -53,6 +53,16 @@ module.exports = (io)=>{
     router.post('/getProductDetails', async(req,res)=>{
         res.json(await ProductService.getProductDetails(req.body, io))
     })
+
+    router.post('/addProduct', async(req,res)=>{
+        res.json(await ProductService.addProduct(req.body, io))
+    })
+    router.post('/reviewlisteditem', async(req,res)=>{
+        res.json(await ProductService.reviewListedItem(req.body, io))
+    })
+    router.get('/getcategoriesSubcatBrand', async(req,res)=>{
+        res.json(await ProductService.categoriesSubcatBrand(io))
+    })
     
     router.post('/getDTD', async(req, res)=>{
         const result = await ProductService.getDistanceAndTimeData(req.body.userid);

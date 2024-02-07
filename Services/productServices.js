@@ -616,6 +616,79 @@ class ProductService {
             return { success: false, message: e.message || "An error occurred." };
         }
     }
+
+    static async addProduct(data, io){
+    // add the data to mongodb
+        const product = new Product({
+            name: data.name,
+            brand: data.brand,
+            category: data.category,
+            subcategory: data.subcategory,
+            description: data.description,
+            features: data.features,
+            quantity: data.quantity,
+            model: data.model,
+            bp: data.bp,
+            sp: data.sp,
+            avatar: data.images,
+            storeid: data.storeid,
+            discount:0
+        });
+        try{
+            const newProduct = await product.save();
+            return { message: 'Product added successfully', success: true, data: newProduct };
+        }catch(error){
+            return { message: 'Product not Created.', success: false };
+        }
+
+    }
+    static async categoriesSubcatBrand(io){
+        try{
+            const categories = [];
+            const subcategories = [];
+            const brands = [];
+
+
+            const products = await Product.find({approved: true, verified: true});
+            products.forEach(product=>{
+                categories.push(product.category);
+                subcategories.push(product.subcategory);
+                brands.push(product.brand);
+            })
+            return {success:true, data: {categories:categories, subcategories:subcategories, brands:brands}};
+        }catch(e){
+            return {success:false, message: e}
+        }
+    }
+
+    static async reviewListedItem(data, io){
+        try {
+            const product = await Product.findOne({_id:data.id});
+            if(product){
+                const verified = product.verified;
+                if(verified){
+                return {message:"Product already verified, Action not completed!", success:false}
+                }else{
+                const filter = {_id: data.id};
+                const update = { approved: data.action=="approve",rejected:data.action=="reject", verified: true, rejectionReason:data.reason};
+                const updateproduct = await Product.findOneAndUpdate(filter, update);
+                
+                if(updateproduct){
+                    const updatedProduct = await Product.findOne({_id:data.id});
+
+                    EventEmitService.emitEventMethod(io, 'addproductevent', {product: updatedProduct});
+                    return {message: `${data.action.toUpperCase()} Action completed successfully`, success: true};
+                }else{
+                    return {message: "Action Failed", success: false}
+                }
+                }
+                
+            }
+
+        }catch(e){
+            return {success:false, message:e}
+        }
+    }
     
     
     
