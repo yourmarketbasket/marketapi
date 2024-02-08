@@ -643,22 +643,88 @@ class ProductService {
 
     }
     static async categoriesSubcatBrand(io){
-        try{
-            const categories = [];
-            const subcategories = [];
-            const brands = [];
-
-
-            const products = await Product.find({approved: true, verified: true});
-            products.forEach(product=>{
-                categories.push(product.category);
-                subcategories.push(product.subcategory);
-                brands.push(product.brand);
-            })
-            return {success:true, data: {categories:categories, subcategories:subcategories, brands:brands}};
-        }catch(e){
-            return {success:false, message: e}
+        try {
+            const productsMap = new Map();
+            const brandsSet = new Set();
+            const categoriesSet = new Set(); // Adjusted to store categories
+            const subcategoriesSet = new Set();
+        
+            const products = await Product.find({ approved: true, verified: true });
+        
+            products.forEach(product => {
+                const { _id, brand, category, subcategory, name, sp, avatar, discount } = product;
+        
+                // Trim and ensure non-empty strings
+                const cleanBrand = brand.trim();
+                const cleanCategory = category.trim();
+                const cleanSubcategory = subcategory.trim();
+        
+                // Check if category is not "n/a" or any variation
+                const isNA = cleanCategory.toLowerCase().includes('n/a');
+                const isSubCatNA = cleanSubcategory.toLowerCase().includes('n/a');
+        
+                if (cleanBrand && cleanCategory && cleanSubcategory && !isNA && !isSubCatNA) {
+                    // Initialize brand if not already added
+                    if (!productsMap.has(cleanBrand)) {
+                        productsMap.set(cleanBrand, []);
+                        brandsSet.add(cleanBrand); // Add to brands set
+                    }
+        
+                    // Add subcategory under category
+                    categoriesSet.add(cleanCategory); // Add to categories set
+                    subcategoriesSet.add(cleanSubcategory); // Add to subcategories set
+        
+                    // Add product to productsMap
+                    productsMap.get(cleanBrand).push({ _id, name, sp, avatar, discount, category: cleanCategory }); // Include category
+                }
+            });
+        
+            // Convert sets to arrays
+            const brandsArray = Array.from(brandsSet);
+            const categoriesArray = Array.from(categoriesSet); // Added categoriesArray
+            const subcategoriesArray = Array.from(subcategoriesSet);
+        
+            // Gather all categories
+            const categories = Array.from(categoriesSet);
+        
+            // For each category, randomly select one product
+            const categoriesListing = [];
+            categories.forEach(category => {
+                const eligibleProducts = [];
+                productsMap.forEach((brandProducts, brand) => {
+                    const productsInCategory = brandProducts.filter(product => product.category === category);
+                    if (productsInCategory.length > 0) {
+                        eligibleProducts.push(...productsInCategory);
+                    }
+                });
+                if (eligibleProducts.length > 0) {
+                    const randomProductIndex = Math.floor(Math.random() * eligibleProducts.length);
+                    const randomProduct = eligibleProducts[randomProductIndex];
+                    categoriesListing.push({ category, _id: randomProduct._id, name: randomProduct.name, sp: randomProduct.sp, avatar: randomProduct.avatar });
+                }
+            });
+        
+            // Shuffle brands
+            const shuffledBrands = Array.from(brandsArray);
+            for (let i = shuffledBrands.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledBrands[i], shuffledBrands[j]] = [shuffledBrands[j], shuffledBrands[i]];
+            }
+        
+            // Extract 4 products from random brands
+            const productsDetails = {};
+            for (let i = 0; i < Math.min(4, shuffledBrands.length); i++) {
+                const brand = shuffledBrands[i];
+                const brandProducts = productsMap.get(brand);
+                const shuffledProducts = [...brandProducts].sort(() => Math.random() - 0.5); // Shuffle products
+                productsDetails[brand] = shuffledProducts.slice(0, Math.min(4, shuffledProducts.length));
+            }
+        
+            return { success: true, products: productsDetails, brands: brandsArray, categoriesListing, categories, subcategories: subcategoriesArray };
+        } catch (e) {
+            return { success: false, message: e };
         }
+        
     }
 
     static async reviewListedItem(data, io){
