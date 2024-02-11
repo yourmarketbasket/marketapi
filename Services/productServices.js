@@ -565,7 +565,8 @@ class ProductService {
                         { _id: data.pid },
                         { $set: { views: [newView] } }
                     );
-    
+                    const newproduct = await Product.findOne({_id:data.pid});
+                    EventEmitService.emitEventMethod(io,"viewsupdate", newproduct)    
                     return { success: true, message: "Product Views Updated." };
                 } else {
                     // Check if the user already exists in views
@@ -605,7 +606,8 @@ class ProductService {
                             }
                         );
                     }
-    
+                    const newproduct = await Product.findOne({_id:data.pid});
+                    EventEmitService.emitEventMethod(io,"viewsupdate", newproduct)     
                     return { success: true, message: "Product Views Updated." };
                 }
             } else {
@@ -754,6 +756,22 @@ class ProductService {
         }catch(e){
             return {success:false, message:e}
         }
+    }
+
+
+    static async getPaginatedProducts(data, io){
+        const page = parseInt(data.page) || 1;
+        const limit = parseInt(data.limit) || 600;
+        const startIndex = (page - 1) * limit;
+
+        try {
+            const products = await Product.find({approved:true, verified:true}).sort({createdAt:"desc"}).skip(startIndex).limit(limit);
+            return {success:true, data: products}
+          } catch (err) {
+            return{ success:false, message: err.message };
+          }
+    
+
     }
     
     

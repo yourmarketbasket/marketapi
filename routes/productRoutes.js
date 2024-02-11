@@ -54,6 +54,10 @@ module.exports = (io)=>{
         res.json(await ProductService.getProductDetails(req.body, io))
     })
 
+    router.post('/getPaginatedProducts', async(req, res)=>{
+        res.json(await ProductService.getPaginatedProducts(req.body, io))
+    })
+
     router.post('/addProduct', async(req,res)=>{
         res.json(await ProductService.addProduct(req.body, io))
     })
