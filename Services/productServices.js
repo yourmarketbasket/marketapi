@@ -546,7 +546,7 @@ class ProductService {
         try {
             const product = await Product.findOne({ _id: data.pid });
     
-            if (product) {
+            if (product && data.uid!==null) {
                 // Check if views exist
                 if (!product.views || product.views.length === 0) {
                     // Create a new view object
@@ -589,6 +589,8 @@ class ProductService {
                                 ]
                             }
                         );
+                        const newproduct = await Product.findOne({_id:data.pid});
+                        EventEmitService.emitEventMethod(io,"viewsupdate", newproduct)   
                     } else {
                         // User does not exist in views, add a new user entry within the original object
                         await Product.updateOne(
@@ -605,9 +607,10 @@ class ProductService {
                                 }
                             }
                         );
+                        const newproduct = await Product.findOne({_id:data.pid});
+                        EventEmitService.emitEventMethod(io,"viewsupdate", newproduct)   
                     }
-                    const newproduct = await Product.findOne({_id:data.pid});
-                    EventEmitService.emitEventMethod(io,"viewsupdate", newproduct)     
+                      
                     return { success: true, message: "Product Views Updated." };
                 }
             } else {
