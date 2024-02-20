@@ -79,8 +79,18 @@ const productSchema = new Schema({
         type: Number
     },
     reviews: {
-        type: [Schema.Types.Mixed],
-    },
+        averageRating:Number,
+        users: [
+          {
+            userid: String,
+            data: {
+                feedback:String,
+                images:[],
+                rating:Number
+            },
+          },
+        ],
+      },
     popular: {
         type: Number
     }, 

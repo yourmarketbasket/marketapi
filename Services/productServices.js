@@ -355,6 +355,22 @@ class ProductService {
         }
 
     }
+    static async getCategoryProducts(data, io){
+        try {
+            const category = new RegExp(data.params.category, 'i'); // Create case-insensitive regex
+            const products = await Product.find({ category: category });
+            if(products.length > 0) {
+                return { success: true, data: products };
+            } else {
+                return { success: false, message: "No Products Found" };
+            }
+        } catch(e) {
+            console.log(e);
+            return { success: false, message: e };
+        }
+    }
+    
+
 
     static async removeCartItem(data, io){
         try {

@@ -73,6 +73,9 @@ module.exports = (io)=>{
        
         res.status(200).json(result);
     })
+    router.get('/getCategoryProducts/:category', async (req, res)=>{
+        res.json(await ProductService.getCategoryProducts(req, io))
+    })
     
     router.post('/increaseCartItemByOne', async(req,res)=>{
         res.json(await ProductService.increaseQttyByOne(req.body, io))
