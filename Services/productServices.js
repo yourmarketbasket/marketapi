@@ -11,6 +11,7 @@ const https = require('https');
 
 const Payments = require('./paymentService');
 const EventEmitService = require('./eventService');
+const { trusted } = require('../db');
 
 class ProductService {  
 
@@ -792,6 +793,21 @@ class ProductService {
     
 
     }
+
+    static async getStoreProducts(id, io) {
+        try {
+            const products = await Product.find({storeid: id, approved: true });
+            
+            if (products && products.length > 0) {
+                return { success: true, data: products };
+            } else {
+                return { success: false, message: "No products found in the given store" };
+            }
+        } catch (e) {
+            return { success: false, message: e.message };
+        }
+    }
+    
     
     
     
