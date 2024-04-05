@@ -807,6 +807,39 @@ class ProductService {
             return { success: false, message: e.message };
         }
     }
+
+    static async getStoreOrders(storeid, io){
+        try {
+            const orders = await Order.aggregate([
+                {
+                    $unwind: "$products"
+                },
+                {
+                    $match: {
+                        "products.storeid": storeid
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "payments", // Collection to join
+                        localField: "transactionID", // Field from the orders collection
+                        foreignField: "reference", // Field from the payments collection
+                        as: "payment" // Output array field
+                    }
+                }
+            ]);
+    
+            if (orders.length !== 0) {
+                return { success: true, orders: orders };
+            } else {
+                throw new Error('No orders found for the store');
+            }
+        } catch (e) {
+            return { success: false, message: e.message }
+        }
+    }
+    
+    
     
     
     
