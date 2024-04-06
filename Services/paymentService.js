@@ -386,7 +386,10 @@ class Payments{
               storeid: product.storeid,
             },
             {
-              $inc: { quantity: -product.quantity },
+              $inc: { 
+                quantity: -product.quantity,
+                sold: product.quantity
+              },
             }
           );
           
