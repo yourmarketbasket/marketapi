@@ -816,7 +816,7 @@ class ProductService {
                 },
                 {
                     $match: {
-                        "products.storeid": storeid
+                        "products.storeid": storeid,
                     }
                 },
                 {

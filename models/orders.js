@@ -46,7 +46,22 @@ const orderSchema = new Schema({
     paymentStatus: {
         type: String,
         required: true
-    }
+    },
+    orderStatus: [
+        {
+          status: {
+            completed: Boolean,
+            delivered:Boolean,
+            partialCompleted: Boolean,
+            returned: [{
+                productid: String,
+                reason: {required:true, type: String},                
+            }]
+          },
+          productid: String,
+
+        },
+    ],
 });
 
 const Order = mongoose.model('Order', orderSchema);
