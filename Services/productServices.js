@@ -829,7 +829,7 @@ class ProductService {
                 }
             ]);
     
-            if (orders.length !== 0) {
+            if (orders.length !== 0) {                
                 return { success: true, orders: orders };
             } else {
                 throw new Error('No orders found for the store');
