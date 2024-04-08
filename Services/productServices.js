@@ -808,7 +808,7 @@ class ProductService {
         }
     }
 
-    static async getStoreOrders(storeid, io){
+    static async getStoreOrders(storeid, io) {
         try {
             const orders = await Order.aggregate([
                 {
@@ -826,10 +826,29 @@ class ProductService {
                         foreignField: "reference", // Field from the payments collection
                         as: "payment" // Output array field
                     }
+                },
+                {
+                    $lookup: {
+                        from: "products",
+                        let: { product_id: "$products.productid" },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: { $eq: ["$_id", "$$product_id"] } // Compare ObjectId values
+                                }
+                            }
+                        ],
+                        as: "product"
+                    }
+                },
+                {
+                    $addFields: {
+                        "product": { $arrayElemAt: ["$product", 0] } // Ensure only one product is selected
+                    }
                 }
             ]);
     
-            if (orders.length !== 0) {                
+            if (orders.length !== 0) {
                 return { success: true, orders: orders };
             } else {
                 throw new Error('No orders found for the store');
@@ -838,6 +857,9 @@ class ProductService {
             return { success: false, message: e.message }
         }
     }
+    
+    
+    
     
     
     
