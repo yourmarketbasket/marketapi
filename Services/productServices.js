@@ -842,19 +842,6 @@ class ProductService {
     }
     
     
-    
-    
-    
-    
-    
-    
-
-
-
-   
-    
-
-      
 
     
       
