@@ -827,25 +827,8 @@ class ProductService {
                         as: "payment" // Output array field
                     }
                 },
-                {
-                    $lookup: {
-                        from: "products",
-                        let: { product_id: "$products.productid" },
-                        pipeline: [
-                            {
-                                $match: {
-                                    $expr: { $eq: ["$_id", "$$product_id"] } // Compare ObjectId values
-                                }
-                            }
-                        ],
-                        as: "product"
-                    }
-                },
-                {
-                    $addFields: {
-                        "product": { $arrayElemAt: ["$product", 0] } // Ensure only one product is selected
-                    }
-                }
+                
+                
             ]);
     
             if (orders.length !== 0) {
@@ -857,7 +840,6 @@ class ProductService {
             return { success: false, message: e.message }
         }
     }
-    
     
     
     
