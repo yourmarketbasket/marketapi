@@ -386,7 +386,7 @@ app.get('/getUser/:id', async (req, res) => {
 });
 
 
-app.post('/editProduct', async (req, res)=>{
+app.post('/editProduct', async (req, res)=>{  
   const product = await Product.find({_id:req.body.id});
   if(product){
     const filter = {_id: req.body.id};

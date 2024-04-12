@@ -808,6 +808,70 @@ class ProductService {
         }
     }
 
+    static async editStoreProductDetails(data, io) {
+        try {
+          const product = await Product.findById(data.id);
+          if (!product) {
+            throw new Error('Product Not Found');
+          }
+      
+          const update = {};
+      
+          if (data.bp !== undefined && data.bp !== null && data.bp !== '') {
+            update.bp = data.bp;
+          } else {
+            update.bp = product.bp;
+          }
+          if (data.sp !== undefined && data.sp !== null && data.sp !== '') {
+            update.sp = data.sp;
+          } else {
+            update.sp = product.sp;
+          }
+          if (data.quantity !== undefined && data.quantity !== null && data.quantity !== '') {
+            update.quantity = data.quantity;
+          } else {
+            update.quantity = product.quantity;
+          }
+          if (data.discount !== undefined && data.discount !== null && data.discount !== '') {
+            update.discount = data.discount;
+          } else {
+            update.discount = product.discount;
+          }
+          if (data.avatar !== undefined && data.images !== null && data.avatar !== '') {
+            update.avatar = data.avatar;
+          } else {
+            update.avatar = product.avatar;
+          }
+          if (data.description !== undefined && data.description !== null && data.description !== '') {
+            update.description = data.description;
+          } else {
+            update.description = product.description;
+          }
+          if (data.features !== undefined && data.features !== null && data.features !== '') {
+            update.features = data.features;
+          } else {
+            update.features = product.features;
+          }
+      
+          update.approved = false;
+          update.verified = false;
+          update.rejected = false;
+          update.rejectionReason = '';
+      
+          const productUpdate = await Product.findByIdAndUpdate(data.id, update, { new: true });
+      
+          if (productUpdate) {
+            return { message: 'Product Details Edited Successfully', success: true };
+          } else {
+            throw new Error('Error: Something Happened');
+          }
+        } catch (error) {
+          console.error('Error editing product:', error.message);
+          return { message: error.message, success: false };
+        }
+      }
+      
+
     static async getStoreOrders(storeid, io) {
         try {
             const orders = await Order.aggregate([
