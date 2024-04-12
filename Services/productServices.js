@@ -274,7 +274,7 @@ class ProductService {
         }
     }
 
-    static async getProductDetails(id){
+    static async getProductDetailsbyID(id){
         const product = await Product.find({_id:id});
         if(product){
             return {product:product, success:true}
@@ -826,12 +826,31 @@ class ProductService {
                         foreignField: "reference", // Field from the payments collection
                         as: "payment" // Output array field
                     }
-                },
-                
-                
+                }
             ]);
     
             if (orders.length !== 0) {
+                for (let order of orders) {
+                    // Check if products exist in the order
+                    if (order.products) {
+                        // If it's an object, convert it to an array
+                        const productsArray = Array.isArray(order.products) ? order.products : [order.products];
+                        // Iterate through each product in the order
+                        for (let product of productsArray) {
+                            // Find the product using its ID and populate its buying price
+                            const productData = await Product.findById(product.productid, 'bp');
+                            if (productData) {
+                                // Assign the buying price to the product in the order
+                                product.bp = productData.bp;
+                            }
+                        }
+                        // If it was originally an object, assign the updated array back to the order
+                        if (!Array.isArray(order.products)) {
+                            order.products = productsArray.length > 0 ? productsArray[0] : null;
+                        }
+                    }
+                }
+    
                 return { success: true, orders: orders };
             } else {
                 throw new Error('No orders found for the store');
@@ -840,6 +859,8 @@ class ProductService {
             return { success: false, message: e.message }
         }
     }
+    
+    
     
     
 

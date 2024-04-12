@@ -38,7 +38,7 @@ module.exports = (io)=>{
     
     router.get('/productDetails/:id', async(req, res)=>{
         const id = req.params.id;
-        res.json(await ProductService.getProductDetails(id));
+        res.json(await ProductService.getProductDetailsbyID(id));
     })
     
     router.post('/decreaseCartItemByOne', async(req,res)=>{
