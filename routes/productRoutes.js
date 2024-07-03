@@ -40,6 +40,10 @@ module.exports = (io)=>{
         const id = req.params.id;
         res.json(await ProductService.getProductDetailsbyID(id));
     })
+    // get grouped orders
+    router.get('/groupAllStoreOrders/:storeid', async(req,res)=>{
+        res.json(await ProductService.groupAllStoreOrders(req.params.storeid, io));
+    });
     
     router.post('/decreaseCartItemByOne', async(req,res)=>{
         res.json(await ProductService.reduceQttyByOne(req.body, io))

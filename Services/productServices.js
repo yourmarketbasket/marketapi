@@ -794,6 +794,101 @@ class ProductService {
 
     }
 
+    static async groupAllStoreOrders(storeid, io) {
+        try {
+          const orders = await Order.aggregate([
+            {
+              $unwind: "$products"
+            },
+            {
+              $match: {
+                "products.storeid": storeid,
+                "paymentStatus": "Completed" 
+              }
+            },
+            {
+              $lookup: {
+                from: "payments", // Collection to join
+                localField: "transactionID", // Field from the orders collection
+                foreignField: "reference", // Field from the payments collection
+                as: "payment" // Output array field
+              }
+            },
+            {
+              $group: {
+                _id: "$buyerid",
+                buyername: { $first: "$buyername" },
+                products: { $push: "$products" }, // Collect products into an array
+                totalAmount: { $sum: "$products.totalCost" },
+                orders: {
+                  $push: {
+                    _id: "$_id",
+                    transactionID: "$transactionID",
+                    products: "$products",
+                    discount: "$discount",
+                    amount: "$amount",
+                    deliveryfee: "$deliveryfee",
+                    countryCode: "$countryCode",
+                    zipCode: "$zipCode",
+                    destination: "$destination",
+                    origin: "$origin",
+                    paymentStatus: "$paymentStatus",
+                    payment: "$payment",
+                    __v: "$__v"
+                  }
+                },
+                origins: {$addToSet: "$origin"},
+                destination: {$addToSet: "$destination"},
+              }
+            },
+            {
+              $project: {
+                _id: 1,
+                buyername: 1,
+                totalOrders: { $size: "$products" }, // Calculate the number of product objects
+                totalAmount: 1,
+                orders: 1,
+                origins:1,
+                destination:1,
+              }
+            }
+          ]);
+      
+          if (orders.length !== 0) {
+            for (let orderGroup of orders) {
+              for (let order of orderGroup.orders) {
+                // Check if products exist in the order
+                if (order.products) {
+                  // If it's an object, convert it to an array
+                  const productsArray = Array.isArray(order.products) ? order.products : [order.products];
+                  // Iterate through each product in the order
+                  for (let product of productsArray) {
+                    // Find the product using its ID and populate its buying price
+                    const productData = await Product.findById(product.productid, 'bp');
+                    if (productData) {
+                      // Assign the buying price to the product in the order
+                      product.bp = productData.bp;
+                    }
+                  }
+                  // If it was originally an object, assign the updated array back to the order
+                  if (!Array.isArray(order.products)) {
+                    order.products = productsArray.length > 0 ? productsArray[0] : null;
+                  }
+                }
+              }
+            }
+      
+            return { success: true, orders: orders};
+          } else {
+            throw new Error('No orders found for the store');
+          }
+        } catch (e) {
+          return { success: false, message: e.message }
+        }
+      }
+      
+      
+      
     static async getStoreProducts(id, io) {
         try {
             const products = await Product.find({storeid: id, approved: true });
@@ -870,6 +965,7 @@ class ProductService {
           return { message: error.message, success: false };
         }
       }
+
       
 
     static async getStoreOrders(storeid, io) {
