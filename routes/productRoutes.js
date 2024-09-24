@@ -89,6 +89,10 @@ module.exports = (io)=>{
     router.get('/getStoreOrders/:id', async (req, res)=>{
         res.json(await ProductService.getStoreOrders(req.params.id, io))
     })
+
+    router.get('/getUserOrders/:userid', async (req, res)=>{
+        res.json(await ProductService.getUserOrders(req.params.userid, io))
+    })
     
     router.post('/increaseCartItemByOne', async(req,res)=>{
         res.json(await ProductService.increaseQttyByOne(req.body, io))

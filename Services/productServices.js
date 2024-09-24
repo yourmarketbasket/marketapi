@@ -167,6 +167,21 @@ class ProductService {
         }
         
     }
+
+    static async getUserOrders(userid, io){
+        try{
+            const orders = await Order.find({buyerid:userid});
+            if(orders){
+                return {success:true, data:orders, message:"Orders fetched Successfully"};
+            }else{
+                return {success:false, message:"No orders exist for the given user"}
+            }
+
+        }catch(e){
+            return {success:false, message:e}
+        }
+
+    }
     
     
     static async availableProductQuantityForUser(data) {
