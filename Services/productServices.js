@@ -183,6 +183,42 @@ class ProductService {
 
     }
     
+    static async getStoreAndProductsByOwnerID(ownerid, io) {
+        try {
+            // Fetch stores owned by the particular owner (user)
+            const stores = await Store.find({ user: ownerid });
+    
+            if (stores.length === 0) {
+                return { success: false, message: "No Store Found for this Owner" };
+            }
+    
+            // Fetch products for each store and calculate total value and product count
+            const storeProductsPromises = stores.map(async (store) => {
+                // Fetch products for the store
+                const products = await Product.find({ storeid: store._id });
+    
+                // Calculate the total number of products and the total value
+                const totalValue = products.reduce((acc, product) => acc + (product.sp * product.quantity), 0);
+                const numberOfProducts = products.length;
+    
+                return {
+                    storeId: store._id,
+                    storeName: store.storename,
+                    numberOfProducts,
+                    totalValue
+                };
+            });
+    
+            // Wait for all product queries and calculations to complete
+            const storesWithProducts = await Promise.all(storeProductsPromises);
+    
+            // Return the result
+            return { success: true, message: "Stores and Products Fetched Successfully", data: storesWithProducts };
+        } catch (e) {
+            return { success: false, message: e.message };
+        }
+    }
+    
     
     static async availableProductQuantityForUser(data) {
         try {
