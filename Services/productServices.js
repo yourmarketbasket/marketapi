@@ -168,20 +168,32 @@ class ProductService {
         
     }
 
-    static async getUserOrders(userid, io){
-        try{
-            const orders = await Order.find({buyerid:userid});
-            if(orders){
-                return {success:true, data:orders, message:"Orders fetched Successfully"};
-            }else{
-                return {success:false, message:"No orders exist for the given user"}
+    static async getUserOrders(userid, io) {
+        try {
+            const orders = await Order.find({ buyerid: userid });
+    
+            if (orders.length > 0) {
+                // Sort orders by paymentStatus: "Completed" first, then "Pending"
+                const sortedOrders = orders.sort((a, b) => {
+                    if (a.paymentStatus === "Completed" && b.paymentStatus === "Pending") {
+                        return -1;
+                    } else if (a.paymentStatus === "Pending" && b.paymentStatus === "Completed") {
+                        return 1;
+                    } else {
+                        return 0; // No change if both have the same paymentStatus
+                    }
+                });
+    
+                return { success: true, data: sortedOrders, message: "Orders fetched successfully" };
+            } else {
+                return { success: false, message: "No orders exist for the given user" };
             }
-
-        }catch(e){
-            return {success:false, message:e}
+        } catch (e) {
+            return { success: false, message: e.message };
         }
-
     }
+    
+    
     
     static async getStoreAndProductsByOwnerID(ownerid, io) {
         try {
