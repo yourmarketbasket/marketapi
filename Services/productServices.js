@@ -1049,7 +1049,18 @@ class ProductService {
                         foreignField: "reference", // Field from the payments collection
                         as: "payment" // Output array field
                     }
-                }
+                },
+                {
+                    $lookup: {
+                        from: "users", // Collection to join
+                        let: { buyerId: { $toObjectId: "$buyerid" } }, // Convert buyerid to ObjectId
+                        pipeline: [
+                            { $match: { $expr: { $eq: ["$_id", "$$buyerId"] } } }
+                        ],
+                        as: "buyer"
+                    }
+                },
+                
             ]);
     
             if (orders.length !== 0) {

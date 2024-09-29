@@ -91,7 +91,6 @@ module.exports = (io)=>{
     })
     router.get('/getStoresAndProductsByOwnerId/:ownerid', async (req, res)=>{
         res.json(await ProductService.getStoreAndProductsByOwnerID(req.params.ownerid, io));
-
     })
 
     router.get('/getUserOrders/:userid', async (req, res)=>{
