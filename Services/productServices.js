@@ -842,20 +842,37 @@ class ProductService {
     }
 
 
-    static async getPaginatedProducts(data, io){
+    static async getPaginatedProducts(data, io) {
         const page = parseInt(data.page) || 1;
         const limit = parseInt(data.limit) || 600;
         const startIndex = (page - 1) * limit;
-
-        try {
-            const products = await Product.find({approved:true, verified:true}).sort({createdAt:"desc"}).skip(startIndex).limit(limit);
-            return {success:true, data: products}
-          } catch (err) {
-            return{ success:false, message: err.message };
-          }
     
-
+        try {
+            // Step 1: Fetch paginated products that are approved and verified
+            const products = await Product.find({ approved: true, verified: true })
+                .sort({ createdAt: "desc" })
+                .skip(startIndex)
+                .limit(limit);
+    
+            // Step 2: For each product, fetch the corresponding store's location and currency
+            const productsWithStoreDetails = await Promise.all(products.map(async (product) => {
+                const store = await Store.findById(product.storeid).select('location currency');
+                return {
+                    ...product.toObject(), // Convert product document to a plain JavaScript object
+                    storeLocation: store ? store.location : 'Unknown location', // Include store location
+                    storeCurrency: store ? store.currency : 'Unknown currency' // Include store currency
+                };
+            }));
+    
+            // Step 3: Return the paginated products with store details
+            return { success: true, data: productsWithStoreDetails };
+    
+        } catch (err) {
+            // Step 4: Handle errors
+            return { success: false, message: err.message };
+        }
     }
+    
 
     static async groupAllStoreOrders(storeid, io) {
         try {

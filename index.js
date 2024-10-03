@@ -195,14 +195,40 @@ app.post('/isFavorite', async (req, res)=>{
   }
 }) 
 // get all the products
-app.get('/getAllProducts', async (req, res)=>{
-  const product = await Product.find({approved:true})
-  if(product){
-    res.status(200).json({data:product, success:true})
-  }else{
-    res.status(404).json({success: false, message:'Could not find the product'})
+// app.get('/getAllProducts', async (req, res)=>{
+//   const product = await Product.find({approved:true})
+//   if(product){
+//     res.status(200).json({data:product, success:true})
+//   }else{
+//     res.status(404).json({success: false, message:'Could not find the product'})
+//   }
+// })
+
+app.get('/getAllProducts', async (req, res) => {
+  try {
+    // Step 1: Fetch all approved products
+    const products = await Product.find({ approved: true });
+
+    // Step 2: Create an array to hold the products with store details
+    const productsWithStoreDetails = await Promise.all(products.map(async (product) => {
+      // Step 3: Fetch the store details for each product using its storeid
+      const store = await Store.findById(product.storeid).select('location currency');
+
+      // Step 4: Merge the store details into the product object
+      return {
+        ...product.toObject(), // Convert product document to plain JavaScript object
+        storeLocation: store ? store.location : 'Unknown location', // Include location from Store
+        storeCurrency: store ? store.currency : 'Unknown currency', // Include currency from Store
+      };
+    }));
+
+    // Step 5: Send the response with the merged product and store data
+    res.status(200).json({ data: productsWithStoreDetails, success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
-})
+});
+
 
 app.get('/getCategoryProducts/:category', async (req, res) => {
   try {
