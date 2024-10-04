@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const AuthService = require('../Services/authService');
 const UserServices = require('../Services/userServices');
+const authenticator = require('../middleware/authenticator');
 
 
 module.exports =(io)=>{
@@ -29,7 +30,7 @@ module.exports =(io)=>{
 
     })
     // change user avatar
-    router.post('/changeUserAvatar', async(req,res)=>{
+    router.post('/changeUserAvatar', authenticator, async(req,res)=>{
         try{
             const changed = await UserServices.changeUserAvatar(req.body)
             res.json(changed)
@@ -50,7 +51,7 @@ module.exports =(io)=>{
             
     });
     // get zipcode
-    router.post('/getZipCode', async(req,res)=>{
+    router.post('/getZipCode',authenticator, async(req,res)=>{
         try{
             const zipcode = await AuthService.getZipCode(req.body.mobile)
             res.json(zipcode);
@@ -109,7 +110,7 @@ module.exports =(io)=>{
         // res.json()
     });
 
-    router.post('/updateMyLocation', async(req, res)=>{
+    router.post('/updateMyLocation',authenticator, async(req, res)=>{
         response = await UserServices.updateLocation(req.body, io);
         res.status(200).send(response)
         // response = await 

@@ -39,16 +39,25 @@ const paymentRoutes = require('./routes/paymentRoutes')
 const darajaApiRoutes = require('./routes/darajaApiRoutes')
 const sellerRoutes = require('./routes/sellerRoutes')
 const notificationRoutes = require('./routes/notifyRoutes');
+const authenticator = require('./middleware/authenticator');
 const authRoutes = require('./routes/auth')(io);
 
 // const authRoutes = require('./routes/auth')
-app.use(cors())
+// app.use(cors())
+const corsOptions = {
+  origin: 'http://localhost:4200', // Your frontend origin
+  methods: 'GET,POST,PUT,DELETE,OPTIONS',
+  allowedHeaders: 'Authorization,Content-Type',
+};
+
+app.use(cors(corsOptions));
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: false }));
 
 // routes
 app.use('/api/users', userRoutes)
 app.use('/api/auth', authRoutes);
+// produtected routes
 app.use('/api/products', productRoutes)
 app.use('/api/payments', paymentRoutes)
 app.use('/api/darajaUrls', darajaApiRoutes)

@@ -2,7 +2,9 @@ const express = require('express');
 const Payment = require('../models/payment')
 const router = express.Router();
 
-router.post('/callbackUrl', async (req,res)=>{
+const authenticator = require('../middleware/authenticator');
+
+router.post('/callbackUrl', authenticator, async (req,res)=>{
     console.log(await req.body)
 });
 router.post('/resultUrl', async (req,res)=>{
@@ -14,7 +16,7 @@ router.post('/timeout', async (req,res)=>{
 router.post('/confirmationUrl', async (req,res)=>{
     console.log(await req.body)
 });
-router.post('/validationUrl', async (req,res)=>{
+router.post('/validationUrl',async (req,res)=>{
     console.log(await req.body)
 });
 router.post('/pesaPallIPNResponse', async (req,res)=>{
