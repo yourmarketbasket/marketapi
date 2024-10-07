@@ -39,8 +39,9 @@ class AuthService {
             expiresIn: '1d',
           }
         );
+        const loginTime = new Date();
 
-        return { message: 'Login Successful', success: true, token:token, userid:userId, status:200};
+        return { message: 'Login Successful', success: true, token:token, userid:userId, timestamp: loginTime, status:200};
       } else {
         return { message: 'Invalid Details', success: false, status:404};
       }
