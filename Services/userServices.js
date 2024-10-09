@@ -26,6 +26,30 @@ class UserService{
 
     }
 
+    // Function to generate a new token
+    static async generateToken (userId, token){
+        // console.log("userid is", userId);
+        try {
+            const user = await User.findOne({_id: userId});
+    
+        if (user) {
+            const payload = {
+            userdata: user,
+            token: token,
+            };
+    
+            // Sign and generate token, expires in 60 seconds
+            const authToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '60s' });
+            return authToken;
+        } else {
+            return null;
+        }
+        } catch (error) {
+            console.error('Error generating token:', error.message);
+            return null;
+        }
+    };
+
     static async updateLocation(data, io){
         try{
             const user = await User.findByIdAndUpdate(
