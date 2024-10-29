@@ -12,7 +12,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server,{
   cors: {
-    origin: ['http://localhost:4200'],
+    origin: ['http://localhost:4200', "https://nisoko.vercel.app"],
     methods: ["GET", "POST"]
   }
 });
@@ -45,7 +45,7 @@ const authRoutes = require('./routes/auth')(io);
 // const authRoutes = require('./routes/auth')
 // app.use(cors())
 const corsOptions = {
-  origin: 'http://localhost:4200', // Your frontend origin
+  origin: ['http://localhost:4200', "https://nisoko.vercel.app"], // Your frontend origin
   methods: 'GET,POST,PUT,DELETE,OPTIONS',
   allowedHeaders: 'Authorization,Content-Type',
 };
