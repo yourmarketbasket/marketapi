@@ -12,7 +12,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server,{
   cors: {
-    origin: ["http://localhost:4200"],
+    origin: ['http://localhost:4200'],
     methods: ["GET", "POST"]
   }
 });
@@ -69,10 +69,11 @@ app.get('/', (req, res) => {
     res.send({message: 'request recieved'});
 });
 
-app.use((err,req,res,next)=>{
-    console.log(err);
-    res.status(500).send({message: error.message});
-})
+app.use((err, req, res, next) => {
+  console.log(err);
+  res.status(500).send({ message: err.message });
+});
+
 // get products
 app.get('/getProducts/:id', async (req, res) => {
   const storeId = req.params.id;

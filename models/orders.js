@@ -1,10 +1,15 @@
 const mongoose = require('mongoose');
+const DateTime = require('node-datetime/src/datetime');
 const Schema = mongoose.Schema; // Import Schema from mongoose
 
 const orderSchema = new Schema({
     transactionID: {
         type: String,
         required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now,
     },
     items: {
         type: Number, 

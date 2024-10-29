@@ -22,6 +22,7 @@ router.post('/validationUrl',async (req,res)=>{
 router.post('/pesaPallIPNResponse', async (req,res)=>{
     // add to the database
     const response = req.body;
+    console.log(response);
     if(req.body){
         // check if the record exists
         const exists = await Payment.findOne({trackingid:response.OrderTrackingId});

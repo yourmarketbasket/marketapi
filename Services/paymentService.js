@@ -89,8 +89,8 @@ class Payments{
             PartyA: 600997,
             PartyB: 254708374149,
             Remarks: data.remarks,
-            QueueTimeOutURL: 'https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout',
-            ResultURL: 'https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl',
+            QueueTimeOutURL: 'https://marketapi.fly.dev/api/darajaUrls/timeout',
+            ResultURL: 'https://marketapi.fly.dev/api/darajaUrls/resultUrl',
             Occasion: data.occassion,
         };
 
@@ -139,8 +139,8 @@ class Payments{
             "AccountReference": "353353",
             "Requester": "254700000000",
             "Remarks": "ok",
-            "QueueTimeOutURL": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://marketapi.fly.dev/api/darajaUrls/timeout",
+            "ResultURL": "https://marketapi.fly.dev/api/darajaUrls/resultUrl"
         };
 
         const config = {
@@ -175,8 +175,8 @@ class Payments{
             "AccountReference": data.reference,
             "Requester": "254700000000",
             "Remarks": data.remarks,
-            "QueueTimeOutURL": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/timeout",
-            "ResultURL": "https://bd61-102-217-167-34.ngrok-free.app/api/darajaUrls/resultUrl"
+            "QueueTimeOutURL": "https://marketapi.fly.dev/api/darajaUrls/timeout",
+            "ResultURL": "https://marketapi.fly.dev/api/darajaUrls/resultUrl"
         };
 
         return new Promise((resolve, reject) => {
@@ -268,7 +268,7 @@ class Payments{
             },
           };
           const postData = JSON.stringify({
-            "url": "https://3b14-105-163-0-17.ngrok-free.app/api/darajaUrls/pesaPallIPNResponse",
+            "url": "https://marketapi.fly.dev/api/darajaUrls/pesaPallIPNResponse",
             "ipn_notification_type": "POST"
           });
         return new Promise((resolve, reject) => {           
@@ -353,7 +353,7 @@ class Payments{
       try{
         // check if order is already marked as completed
         const completed = await Order.findOne({transactionID: reference, paymentStatus: 'Completed'});
-        if(!completed && status=="Completed"){
+        if(!completed && status==="Completed"){
           const updateorder = await Order.findOneAndUpdate({transactionID: reference}, 
             {
               $set: {paymentStatus: status}
@@ -420,7 +420,7 @@ class Payments{
         })
         if(payment){
           // update the order status
-          return Payments.updateOrderStatus(payment.reference, data.payment_status_description)
+          return await Payments.updateOrderStatus(payment.reference, data.payment_status_description)
         }else{
           return false;
         }
@@ -452,11 +452,11 @@ class Payments{
             const postData = JSON.stringify({
                 "id": info.transactionID,
                 "currency": "KES",
-                "amount":1, //info.amount,
+                "amount":info.amount,
                 "description": info.description,
                 "callback_url": 'http://localhost:4200/market_place/success',
                 "redirect_mode": "",
-                "notification_id": "d721ad7d-26f3-4103-a20b-ddae2c6cf7c4",
+                "notification_id": "3fa47fc8-3748-4884-95d1-dc94366df6d9",
                 "branch": "NISOKO TECHNOLOGIES",
                 "billing_address": {
                   "email_address": info.phone,
