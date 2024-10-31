@@ -3,6 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const request = require('request');
 const { spawn } = require('child_process');
+const customLimiter = require('./middleware/rateLimiter');
 
 // const ip = '192.168.88.207';
 
@@ -57,6 +58,9 @@ app.use(bodyparser.urlencoded({ extended: false }));
 // routes
 app.use('/api/users', userRoutes)
 app.use('/api/auth', authRoutes);
+app.use('/api/users', customLimiter);
+app.use('/api/auth', customLimiter);
+
 // produtected routes
 app.use('/api/products', productRoutes)
 app.use('/api/payments', paymentRoutes)

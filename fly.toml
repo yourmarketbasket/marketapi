@@ -13,7 +13,7 @@ primary_region = 'cdg'
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 2
   processes = ['app']
   [http_service.concurrency]
     type = "requests"
@@ -21,6 +21,6 @@ primary_region = 'cdg'
     hard_limit = 1500
 
 [[vm]]
-  memory = '1gb'
+  memory = '2gb'
   cpu_kind = 'shared'
   cpus = 1

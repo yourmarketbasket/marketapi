@@ -410,14 +410,14 @@ class Payments{
 
             if (status.payment_status_description === "Completed" && status.status === '200') {
                 // Attempt to update the payment status
-                const update = await updatePaymentStatus(id, status);
+                const update = await Payments.updatePaymentStatus(id, status);
                 if (update) {
                     return { success: true, data: status };
                 } else {
                     return { success: false, message: "Error updating the payment" };
                 }
             } else {
-                return { success: false, message: "Error Occurred" };
+                return { success: false, message: status.payment_status_description };
             }
         } catch (error) {
             console.error("An error occurred:", error);
