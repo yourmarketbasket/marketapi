@@ -51,7 +51,7 @@ module.exports =(io)=>{
             
     });
     // get zipcode
-    router.post('/getZipCode',authenticator, async(req,res)=>{
+    router.post('/getZipCode', async(req,res)=>{
         try{
             const zipcode = await AuthService.getZipCode(req.body.mobile)
             res.json(zipcode);
@@ -90,6 +90,12 @@ module.exports =(io)=>{
 
     });
 
+    router.post('/checkIfUserVerified', async (req, res)=>{    
+        response = await AuthService.checkIfUserVerified(req.body.userid, req.body.mobilenumber)
+        
+        res.json(response);
+    });
+
     router.post('/sendTwilioOTP', async (req, res)=>{    
         response = await AuthService.sendVerificationCode(req.body.mobilenumber, req.body.signature)
         if(response.sid && response.serviceSid && response.to && response.status=="pending"){
@@ -108,6 +114,12 @@ module.exports =(io)=>{
             res.status(500).json({success:false, message: "Some error orccured"})
         }
         // res.json()
+    });
+
+    router.post('/markUserAsVerified', async (req, res)=>{    
+        response = await AuthService.markUserAsVerified(req.body.phone);
+        
+        res.json(response);
     });
 
     router.post('/updateMyLocation',authenticator, async(req, res)=>{

@@ -129,6 +129,7 @@ class AuthService {
               location: '',
           });
           await user.save();
+
                   
           return { message: `Registration  successfull`, success: true};
                       
@@ -229,6 +230,16 @@ class AuthService {
       return {message:"Not found", success:false} 
     }
   }
+  // update verification status of a user
+  static async markUserAsVerified(phone){
+    const user = await User.findOneAndUpdate({ phone: phone }, { $set: { verified: true } });
+    if(user){
+      return {success: true, message: "Verification Updated"};
+    }else{
+      return {success: false, message: "Verification Updated"};
+    }
+
+  }
   // verify password
   static async resetPassword(info){
     try{
@@ -294,6 +305,21 @@ class AuthService {
       });
 
     })    
+  }
+
+  static async checkIfUserVerified(userid, mobilenumber){
+    try{
+      const user = await User.findOne({_id: userid, phone: phone, verified: true});
+      if(user){
+        return {success:true, verified:true}
+      }else{
+        return {success:true, verified:false};
+      }
+
+    }catch(e){
+      return {success: true, verified: false};
+
+    }
   }
 
   static async sendVerificationCode(mobilenumber, signature, timeoutMillis = 5000, maxRetries = 3) {
