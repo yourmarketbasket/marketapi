@@ -36,27 +36,15 @@ router.get('/pesapalTransactionStatus/:id', async (req, res) => {
     const id = req.params.id;
 
     try {
-        const status = await PaymentService.getPesapalTransactionStatus(id);
+        const result = await PaymentService.processPesapalTransactionStatus(id);
 
-        if (status.payment_status_description === "Completed" && status.status === '200') {
-            // Attempt to update the payment status
-            try {
-                const update = await PaymentService.updatePaymentStatus(id, status);
-
-                if (update) {
-                    return res.json(status); // Exit after response
-                } else {
-                    return res.status(500).json({ message: "Error updating the payment" });
-                }
-            } catch (updateError) {
-                return res.status(500).json({ message: "An error occurred while updating the payment status" });
-            }
+        if (result.success) {
+            return res.json(result.data);
         } else {
-            return res.json({message: "Error Occured"});
+            return res.status(500).json({ message: result.message });
         }
     } catch (error) {
-        console.error("An error occurred:", error);
-        return res.status(500).json({ message: "An error occurred while processing the transaction status" });
+        return res.status(500).json({ message: error.message });
     }
 });
 

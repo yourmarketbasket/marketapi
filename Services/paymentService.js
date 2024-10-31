@@ -404,6 +404,26 @@ class Payments{
         return false;
       }
     }
+    static async processPesapalTransactionStatus(id) {
+        try {
+            const status = await Payments.getPesapalTransactionStatus(id);
+
+            if (status.payment_status_description === "Completed" && status.status === '200') {
+                // Attempt to update the payment status
+                const update = await updatePaymentStatus(id, status);
+                if (update) {
+                    return { success: true, data: status };
+                } else {
+                    return { success: false, message: "Error updating the payment" };
+                }
+            } else {
+                return { success: false, message: "Error Occurred" };
+            }
+        } catch (error) {
+            console.error("An error occurred:", error);
+            throw new Error("An error occurred while processing the transaction status");
+        }
+    }
     
     static async updatePaymentStatus(trackingid, data){
       try{
