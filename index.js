@@ -20,6 +20,26 @@ const io = socketIo(server,{
   }
 });
 
+// Event listener for new socket connections
+io.on('connection', (socket) => {
+  console.log('New client connected');
+  
+  // Optional: Heartbeat event to keep connection alive
+  socket.on('heartbeat', () => {
+    console.log('Received heartbeat from client');
+  });
+
+  // Handle client disconnection
+  socket.on('disconnect', (reason) => {
+    console.log('Client disconnected:', reason);
+  });
+
+  // Error handling on the socket connection
+  socket.on('error', (err) => {
+    console.error('Socket encountered error:', err.message);
+  });
+});
+
 // app.set('trust proxy', true);
 
 
@@ -51,8 +71,7 @@ const authRoutes = require('./routes/auth')(io);
 // app.use(cors())
 const corsOptions = {
   origin: ['http://localhost:4200', "https://www.nisoko.co.ke"], // Your frontend origin
-  methods: 'GET,POST,PUT,DELETE,OPTIONS',
-  allowedHeaders: 'Authorization,Content-Type',
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 };
 
 app.use(cors(corsOptions));
