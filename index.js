@@ -4,6 +4,8 @@ const socketIo = require('socket.io');
 const request = require('request');
 const { spawn } = require('child_process');
 const customLimiter = require('./middleware/rateLimiter');
+const combinedMiddleware = require('./middleware/globalRateLimiter');
+
 
 // const ip = '192.168.88.207';
 
@@ -17,6 +19,8 @@ const io = socketIo(server,{
     methods: ["GET", "POST"]
   }
 });
+
+// app.set('trust proxy', true);
 
 
 const router = express.Router();
@@ -58,8 +62,9 @@ app.use(bodyparser.urlencoded({ extended: false }));
 // routes
 app.use('/api/users', userRoutes)
 app.use('/api/auth', authRoutes);
-app.use('/api/users', customLimiter);
-app.use('/api/auth', customLimiter);
+// app.use('/api/users', customLimiter);
+// app.use('/api/auth', customLimiter);
+// app.use(combinedMiddleware);
 
 // produtected routes
 app.use('/api/products', productRoutes)
