@@ -13,30 +13,45 @@ let otpid = '';
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server,{
+const io = socketIo(server, {
   cors: {
-    origin: ['http://localhost:4200', "https://www.nisoko.co.ke"],
-    methods: ["GET", "POST"]
-  }
+    origin: ['http://localhost:4200', 'https://www.nisoko.co.ke'],
+    methods: ['GET', 'POST'],
+  },
+  transports: ["websocket"],
+  pingInterval: 60000,
+  pingTimeout: 60000,
+  upgradeTimeout: 30000
 });
 
 // Event listener for new socket connections
 io.on('connection', (socket) => {
-  console.log('New client connected');
+  console.log('New client connected:', socket.id);
+
+  // Function to send a ping event to client every 10 seconds
+  const sendHeartbeat = () => {
+    if (socket.connected) {
+      socket.emit('ping', { beat: 1 });
+      setTimeout(sendHeartbeat, 10000); // Repeat every 10 seconds
+    }
+  };
   
-  // Optional: Heartbeat event to keep connection alive
-  socket.on('heartbeat', () => {
-    console.log('Received heartbeat from client');
+  // Start sending heartbeat after connection
+  sendHeartbeat();
+
+  // Listen for 'pong' event from the client to confirm connection
+  socket.on('pong', () => {
+    console.log(`Received pong from client: ${socket.id}`);
   });
 
   // Handle client disconnection
   socket.on('disconnect', (reason) => {
-    console.log('Client disconnected:', reason);
+    console.log(`Client disconnected (ID: ${socket.id}): ${reason}`);
   });
 
-  // Error handling on the socket connection
+  // Handle socket errors
   socket.on('error', (err) => {
-    console.error('Socket encountered error:', err.message);
+    console.error(`Socket error on ${socket.id}:`, err.message);
   });
 });
 
