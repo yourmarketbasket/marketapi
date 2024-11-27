@@ -12,7 +12,7 @@ module.exports =(io)=>{
         const password = req.body.password; // Fix the typo here, change "phone" to "password"
         
         try {
-        const user = await AuthService.authenticateUser(phone, password);
+        const user = await AuthService.authenticateUser(phone, password, io);
         res.status(user.status).json(user); // Send the response back to the client
         } catch (error) {
         res.status(500).json({ message: 'Internal Server Error', success: false });
@@ -32,12 +32,21 @@ module.exports =(io)=>{
     // change user avatar
     router.post('/changeUserAvatar', authenticator, async(req,res)=>{
         try{
-            const changed = await UserServices.changeUserAvatar(req.body)
+            const changed = await UserServices.changeUserAvatar(req.body, io)
             res.json(changed)
         }catch(e){
             res.json({message: e, success:false})
         }
 
+    });
+    // getUserNotifications
+    router.get('/getUserNotifications/:userid', authenticator, async(req, res)=>{
+        try{
+            res.json(await UserServices.getUserNotifications(req.params.userid));
+        }catch(e){
+            res.json({message:e.success, success:false})
+        }
+        
     });
     // verifyotp
     router.post('/verifyOTP', async(req,res)=>{

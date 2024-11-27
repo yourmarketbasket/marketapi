@@ -8,6 +8,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const verifySid = process.env.TWILIO_VERIFY_SID;
 const client = require("twilio")(accountSid, authToken);
+const NotificationService = require('./notificationService')
 
 class AuthService {
   static async testFunction(io){
@@ -15,7 +16,7 @@ class AuthService {
   }
     
     // login and authenticate
-  static async authenticateUser(phone, password) {
+  static async authenticateUser(phone, password, io) {
 
     try {
       const user = await User.findOne({ phone });
@@ -40,12 +41,25 @@ class AuthService {
           }
         );
         const loginTime = new Date();
+        NotificationService.addNotification({
+          userId: user._id,
+          message: "Login Successful",
+          type: "success",
+          link: null, // Optional field
+          isRead: false, },  io); 
 
         return { message: 'Login Successful', success: true, token:token, userid:userId, timestamp: loginTime, status:200};
       } else {
+        NotificationService.addNotification({
+          userId: user._id,
+          message: "Login unsuccessful",
+          type: "error",
+          link: null, // Optional field
+          isRead: false, },  io); 
         return { message: 'Invalid Details', success: false, status:200};
       }
     } catch (error) {
+      console.log(error.message)
       throw error; // You can rethrow the error or handle it as needed
     }
   }
@@ -251,8 +265,20 @@ class AuthService {
           const update = {password:hashedPassword};
           const updatePwd =  await user.findOneAndUpdate(filter, update);
           if(updatePwd){
+            NotificationService.addNotification({
+              userId: data.userid,
+              message: "Password Update Successful",
+              type: "success",
+              link: null, // Optional field
+              isRead: false, },  io); 
             return {message: "Password updated!", success:true};
           }else{
+            NotificationService.addNotification({
+              userId: data.userid,
+              message: "Password Update Unsuccessful",
+              type: "success",
+              link: null, // Optional field
+              isRead: false, },  io); 
             return {message: "Password reset failed!", success:false};
           }
 

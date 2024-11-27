@@ -392,6 +392,7 @@ class Payments{
               },
             }
           );
+          EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:buyerid, productid:product.productid, message:'Product Status updated' }) 
           
         }
 

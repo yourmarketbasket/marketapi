@@ -5,6 +5,7 @@ const Store = require('../models/stores');
 const User = require('../models/user');
 const axios = require('axios');
 const https = require('https');
+const mongoose = require('mongoose');
 
 
 
@@ -12,6 +13,7 @@ const https = require('https');
 const Payments = require('./paymentService');
 const EventEmitService = require('./eventService');
 const { trusted } = require('../db');
+const NotificationService = require('./notificationService');
 
 class ProductService {  
 
@@ -49,7 +51,8 @@ class ProductService {
                         });
             
                         if (newCart) {
-                            EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.userid, message:"New Cart Created with the Product" })        
+                            EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.userid, message:"New Cart Created with the Product" });
+                               
                             return {success:true,available:available, message: "New Cart Created with the Product"}
                         } else {
                             return {success:false, available:available, message: "Something went wrong while creating the cart."}
@@ -86,7 +89,8 @@ class ProductService {
                             if (updateProduct) {
                                 const targetProduct = updateProduct.products.find(product=>product.productid === data.productid);
                                 if(targetProduct){  
-                                    EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.userid, message:"Cart Product Updated" })          
+                                    EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.userid, message:"Cart Product Updated" })  
+                                            
                                     return { success: true, available: targetProduct.available-data.quantity, message: "Cart Product Updated" };
                                 } else {
                                     return { success: false, available: targetProduct.available, message: "Error: Could not update cart product!" };
@@ -126,7 +130,8 @@ class ProductService {
                         const addNewItem = await existingCart.save();
     
                         if (addNewItem) {
-                            EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.userid, message:"New Product Added to Cart" })   
+                            EventEmitService.emitEventMethod(io, 'cartoperationsevent', {userid:data.userid, message:"New Product Added to Cart" })  
+                             
                             return {success:true,available:available, message: "New Product Added to Cart"}
                         } else {
                             return {success:false,available:available, message: "Error adding product to cart"}
@@ -982,6 +987,60 @@ class ProductService {
             return { success: false, message: e.message };
         }
     }
+
+    static async migrateOrders() {
+        try {
+            // Find orders missing overallStatus
+            const ordersWithoutOverallStatus = await Order.find({ overallStatus: { $exists: false } });
+    
+            // Iterate through each order
+            for (let order of ordersWithoutOverallStatus) {
+                // Use `await` to resolve the asynchronous method
+                const calculatedStatus = await this.calculateOverallStatus(order);
+    
+                // Update the order document with the calculated overallStatus
+                order.overallStatus = calculatedStatus;
+    
+                // Save the updated order
+                await order.save();
+                console.log(`Order ${order.transactionID} updated with overallStatus: ${calculatedStatus}`);
+            }
+    
+            console.log('Migration completed successfully!');
+        } catch (error) {
+            console.error('Error during migration:', error);
+        } finally {
+            // Close the database connection
+            mongoose.connection.close();
+        }
+    }
+    
+    static async calculateOverallStatus(order) {
+        const productStatuses = order.orderStatus?.map(item => item.status) || [];
+    
+        // Check if orderStatus is empty, and return 'processing' as default
+        if (productStatuses.length === 0) {
+            return 'processing';
+        }
+    
+        // Determine overall status based on product statuses
+        if (productStatuses.every(status => status === 'completed')) {
+            return 'completed';
+        } else if (productStatuses.every(status => status === 'delivered')) {
+            return 'delivered';
+        } else if (productStatuses.every(status => status === 'dispatched')) {
+            return 'dispatched';
+        } else if (productStatuses.every(status => status === 'packed')) {
+            return 'packed';
+        } else if (productStatuses.some(status => status === 'completed')) {
+            return 'partialCompleted';
+        } else if (productStatuses.every(status => status === 'confirm')) {
+            return 'confirm';
+        } else {
+            return 'processing'; // Fallback to 'processing' if no other condition is met
+        }
+    }
+    
 
     static async editStoreProductDetails(data, io) {
         try {

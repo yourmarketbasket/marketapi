@@ -86,6 +86,9 @@ module.exports = (io)=>{
     router.get('/getCategoryProducts/:category', async (req, res)=>{
         res.json(await ProductService.getCategoryProducts(req, io))
     })
+    router.get('/migrateOrders', async(req, res)=>{
+        res.json(await ProductService.migrateOrders())
+    })
     router.get('/getProductsByStore/:id',authenticator, async (req, res)=>{
         res.json(await ProductService.getStoreProducts(req.params.id, io))
     })

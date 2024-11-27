@@ -13,35 +13,23 @@ let otpid = '';
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
+const io = require('socket.io')(server, {
   cors: {
-    origin: ['http://localhost:4200', 'https://www.nisoko.co.ke'],
+    origin: ['http://localhost:4200', 'https://www.nisoko.co.ke', "https://nisoko.onrender.com"],
     methods: ['GET', 'POST'],
   },
-  transports: ["websocket"],
-  pingInterval: 60000,
-  pingTimeout: 60000,
-  upgradeTimeout: 30000
+  transports: ['websocket'], // Restrict to websocket transport
+  // No heartbeat settings or ping-pong logic
 });
 
-// Event listener for new socket connections
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
-  // Function to send a ping event to client every 10 seconds
-  const sendHeartbeat = () => {
-    if (socket.connected) {
-      socket.emit('ping', { beat: 1 });
-      setTimeout(sendHeartbeat, 10000); // Repeat every 10 seconds
-    }
-  };
-  
-  // Start sending heartbeat after connection
-  sendHeartbeat();
-
-  // Listen for 'pong' event from the client to confirm connection
-  socket.on('pong', () => {
-    console.log(`Received pong from client: ${socket.id}`);
+  // Handle events from the client
+  socket.on('cartoperationsevent', (data) => {
+    console.log('Received cartoperationsevent:', data);
+    // Emit a response back to the client (if needed)
+    socket.emit('cartoperationsevent_response', { message: 'Event received successfully' });
   });
 
   // Handle client disconnection
@@ -52,8 +40,13 @@ io.on('connection', (socket) => {
   // Handle socket errors
   socket.on('error', (err) => {
     console.error(`Socket error on ${socket.id}:`, err.message);
+    // Optionally disconnect the socket if needed
+    // socket.disconnect(); 
   });
 });
+
+
+
 
 // app.set('trust proxy', true);
 
@@ -75,6 +68,8 @@ const port = 3000;
 // import route files
 const userRoutes = require('./routes/userRoutes')(io);
 const productRoutes = require('./routes/productRoutes')(io);
+const orderRoutes = require('./routes/orderRoutes')(io);
+
 const paymentRoutes = require('./routes/paymentRoutes')
 const darajaApiRoutes = require('./routes/darajaApiRoutes')
 const sellerRoutes = require('./routes/sellerRoutes')
@@ -85,7 +80,7 @@ const authRoutes = require('./routes/auth')(io);
 // const authRoutes = require('./routes/auth')
 // app.use(cors())
 const corsOptions = {
-  origin: ['http://localhost:4200', "https://www.nisoko.co.ke"], // Your frontend origin
+  origin: ['http://localhost:4200', "https://www.nisoko.co.ke", "https://nisoko.onrender.com", "https://nisoko.co.ke"], // Your frontend origin
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 };
 
@@ -106,6 +101,8 @@ app.use('/api/payments', paymentRoutes)
 app.use('/api/darajaUrls', darajaApiRoutes)
 app.use('/api/sellers', sellerRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/orderRoutes', orderRoutes)
+
 
 // splitting the api
 app.get('/', (req, res) => {
