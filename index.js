@@ -73,7 +73,7 @@ const orderRoutes = require('./routes/orderRoutes')(io);
 const paymentRoutes = require('./routes/paymentRoutes')
 const darajaApiRoutes = require('./routes/darajaApiRoutes')
 const sellerRoutes = require('./routes/sellerRoutes')
-const notificationRoutes = require('./routes/notifyRoutes');
+const notificationRoutes = require('./routes/notifyRoutes')(io);
 const authenticator = require('./middleware/authenticator');
 const authRoutes = require('./routes/auth')(io);
 

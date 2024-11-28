@@ -63,7 +63,7 @@ const orderSchema = new Schema({
     ],
     overallStatus: {
         type: String,
-        enum: ['processing', 'confirmed', 'packed', 'dispatched', 'partialCompleted', 'delivered', 'completed'],
+        enum: ['processing', 'confirmed', 'packed', 'dispatched', 'partialCompleted', 'delivered', 'completed', 'failed'],
         default: 'processing', // Default to 'processing'
     },
 });

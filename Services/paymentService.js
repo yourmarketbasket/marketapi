@@ -418,12 +418,30 @@ class Payments{
                     return { success: false, message: "Error updating the payment" };
                 }
             } else {
-                return { success: false, message: status.payment_status_description };
+                
+                return { success: false, message: status.payment_status_description, data: status };
             }
         } catch (error) {
             console.error("An error occurred:", error);
             throw new Error("An error occurred while processing the transaction status");
         }
+    }
+    static async updateFailedPesapalPayment(reference, paystatus){
+      try{
+        const order = await Order.findOneAndUpdate({transactionID: reference},{
+          paymentStatus: paystatus, 
+          overallStatus: "failed"
+        })
+        if(order){
+          return {success: true, message: "Transaction marked as failed"}
+        }else{
+          return {success:false, message: "failed to mark transaction as failed"}
+        }
+
+      }catch(e){
+        return {success: false, message: e.message}
+      }
+
     }
     
     static async updatePaymentStatus(trackingid, data){

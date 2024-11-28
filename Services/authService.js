@@ -41,12 +41,7 @@ class AuthService {
           }
         );
         const loginTime = new Date();
-        NotificationService.addNotification({
-          userId: user._id,
-          message: "Login Successful",
-          type: "success",
-          link: null, // Optional field
-          isRead: false, },  io); 
+        
 
         return { message: 'Login Successful', success: true, token:token, userid:userId, timestamp: loginTime, status:200};
       } else {
