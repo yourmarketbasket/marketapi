@@ -48,6 +48,15 @@ module.exports =(io)=>{
         }
         
     });
+    // mark notification as read
+    router.get('/markNotificationAsRead/:id', authenticator, async(req, res)=>{
+        try{
+            res.json(await UserServices.markNotificationAsRead(req.params.id));
+        }catch(e){
+            res.json({message:e.success, success:false})
+        }
+        
+    });
     // verifyotp
     router.post('/verifyOTP', async(req,res)=>{
         try{

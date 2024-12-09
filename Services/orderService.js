@@ -7,6 +7,7 @@ const Payment = require('../models/payment');
 const ProductService = require('./productServices');
 const Order = require('../models/orders');
 const Store = require('../models/stores');
+const NotificationService = require('./notificationService');
 
 const Product = require('../models/products');
 
@@ -210,7 +211,7 @@ class OrderService{
     }
     }
     // mark order status
-    static async markOrderStatus(data) {
+    static async markOrderStatus(data, io) {
         const { status, orderId, productid } = data;
     
         try {
@@ -242,6 +243,8 @@ class OrderService{
     
             // Save the updated order
             await order.save();
+
+            NotificationService.addNotification({userId:order.buyerid, message: `Order ID: ${orderId}. Your Order of TID(${order.transactionID}) status has been updated to ${normalizedStatus}`, type: "success", link: null}, io)
     
             return { success: true, message: 'Order status updated successfully.', order };
         } catch (error) {

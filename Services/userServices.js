@@ -45,10 +45,22 @@ class UserService{
         try {
             // Fetch unread notifications for the user
             const notifications = await Notification.find({ userId: userid, isRead: false });
-            
+    
             if (!notifications || notifications.length === 0) {
                 return { success: false, message: "No notifications found!" };
             }
+    
+            // Parse `createdAt` into Date objects
+            notifications.forEach(notification => {
+                if (typeof notification.createdAt === 'string') {
+                    notification.createdAt = new Date(notification.createdAt); // Ensure it's a Date object
+                }
+            });
+    
+    
+            // Sort notifications by `createdAt` in descending order (latest first)
+            notifications.sort((a, b) => b.createdAt - a.createdAt); // Sorting by timestamp
+    
     
             // Initialize categories and their counts
             const categorizedNotifications = {
@@ -101,6 +113,36 @@ class UserService{
             return { success: false, message: error.message };
         }
     }
+
+    static async markNotificationAsRead(notificationId) {
+        try {
+            // Find the notification by its _id
+            const notification = await Notification.findById(notificationId);
+    
+            if (!notification) {
+                return { success: false, message: "Notification not found!" };
+            }
+    
+            if (notification.isRead) {
+                return { success: false, message: "Notification is already marked as read!" };
+            }
+    
+            // Mark the notification as read
+            notification.isRead = true;
+            
+            // Save the updated notification
+            await notification.save();
+    
+            return { success: true, message: "Notification marked as read successfully!" };
+    
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    }
+    
+    
+    
+    
     
 
     // Function to generate a new token

@@ -11,7 +11,7 @@ module.exports = (io) => {
 
     router.post('/markOrderStatus', authenticator, async (req, res) => {
         const data = req.body; // Contains status, orderId, and productid
-        const result = await OrderService.markOrderStatus(data);
+        const result = await OrderService.markOrderStatus(data, io);
     
         if (result.success) {
             res.json({ success: true, data: result.order });
