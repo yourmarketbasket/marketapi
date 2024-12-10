@@ -244,7 +244,7 @@ class OrderService{
             // Save the updated order
             await order.save();
 
-            NotificationService.addNotification({userId:order.buyerid, message: `Status Update [Order ID: ${orderId}]. Your Order of TID(${order.transactionID}) status has been updated to ${normalizedStatus}`, type: "success", link: null}, io)
+            NotificationService.addNotification({userId:order.buyerid, message: `Step-[${status.toUpperCase()}]. Your Order ID(${orderId}) of TID(${order.transactionID})  marked as ${normalizedStatus.toUpperCase()}.`, type: "success", link: null}, io)
     
             return { success: true, message: 'Order status updated successfully.', order };
         } catch (error) {

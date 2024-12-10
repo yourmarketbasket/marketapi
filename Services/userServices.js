@@ -114,7 +114,7 @@ class UserService{
         }
     }
 
-    static async markNotificationAsRead(notificationId) {
+    static async markNotificationAsRead(notificationId, io) {
         try {
             // Find the notification by its _id
             const notification = await Notification.findById(notificationId);
@@ -132,6 +132,15 @@ class UserService{
             
             // Save the updated notification
             await notification.save();
+            io.emit('new-notification', {
+                id: notification._id,
+                userId: notification.userId,
+                message: notification.message,
+                type: notification.type,
+                link: notification.link,
+                isRead: notification.isRead,
+                createdAt: notification.createdAt,
+            });
     
             return { success: true, message: "Notification marked as read successfully!" };
     
