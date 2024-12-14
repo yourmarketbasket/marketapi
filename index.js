@@ -76,6 +76,8 @@ const sellerRoutes = require('./routes/sellerRoutes')
 const notificationRoutes = require('./routes/notifyRoutes')(io);
 const authenticator = require('./middleware/authenticator');
 const authRoutes = require('./routes/auth')(io);
+const adminRoutes = require('./routes/adminRoutes')(io);
+
 
 // const authRoutes = require('./routes/auth')
 // app.use(cors())
@@ -102,6 +104,8 @@ app.use('/api/darajaUrls', darajaApiRoutes)
 app.use('/api/sellers', sellerRoutes)
 app.use('/api/notifications', notificationRoutes)
 app.use('/api/orderRoutes', orderRoutes)
+app.use('/api/admin', adminRoutes)
+
 
 
 // splitting the api

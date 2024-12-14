@@ -147,6 +147,22 @@ class ProductService {
         
     }
 
+    static async storeCoordinates(id, io) {
+        try {
+            // Find the store by ID and select only the 'location' field
+            const store = await Store.findOne({ _id: id }).select('location');
+    
+            if (!store) {
+                return { success: false, message: 'Store not found' };
+            }
+    
+            return { success: true, location: store.location };
+        } catch (e) {
+            return { success: false, message: e.message };
+        }
+    }
+    
+
     static async clearCart(data, io){
         try{
 

@@ -92,6 +92,9 @@ module.exports = (io)=>{
     router.get('/getProductsByStore/:id',authenticator, async (req, res)=>{
         res.json(await ProductService.getStoreProducts(req.params.id, io))
     })
+    router.get('/getStoreCoordinates/:id',authenticator, async (req, res)=>{
+        res.json(await ProductService.storeCoordinates(req.params.id, io))
+    })
     router.get('/getStoreOrders/:id',authenticator, async (req, res)=>{
         res.json(await ProductService.getStoreOrders(req.params.id, io))
     })
