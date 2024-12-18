@@ -25,7 +25,7 @@ class NotificationService {
             await notification.save();
     
             // Emit the saved notification using Socket.IO
-            io.emit('order-notification', {
+            io.emit('new-notification', {
                 id: notification._id,
                 userId: notification.userId,
                 message: notification.message,

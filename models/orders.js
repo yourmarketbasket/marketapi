@@ -54,6 +54,10 @@ const orderSchema = new Schema({
     orderStatus: [
         {
             productid: String,
+            date: {
+                type: Date,
+                default: Date.now
+            },
             status: {
                 type: String,
                 enum: ['processing', 'confirm', 'pack', 'dispatch', 'deliver', 'complete'],
