@@ -1,5 +1,6 @@
 const StaticImage = require('../models/staticImages'); // Assuming the model is in the 'models' directory
 const mongoose = require('mongoose');
+const Driver = require('../models/driver');
 
 class StaticImageService {
     static async addStaticImages(data, io) {
@@ -58,6 +59,108 @@ class StaticImageService {
             return { success: false, data: error.message };
         }
     }
+   // register driver
+
+   static async registerDeliveryDriver(data, io) {
+        try {
+            // Extract the data from the incoming registration form
+            const { 
+                personalDetails, 
+                vehicleDetails, 
+                licenseDetails, 
+                emergencyContact
+            } = data;
+
+            // Check if the driver is already registered using vehicle registration number or contact number
+            const existingDriver = await Driver.findOne({
+                $or: [
+                    { 'vehicleDetails.registrationNumber': vehicleDetails.registrationNumber },
+                    { 'personalDetails.contactNumber': personalDetails.contactNumber }
+                ]
+            });
+
+            if (existingDriver) {
+                // If a driver with the same vehicle registration or contact number exists, return an error
+                return {
+                    success: false,
+                    message: 'Driver already registered with the same vehicle registration number or contact number.',
+                    driverID: existingDriver.driverID
+                };
+            }
+
+            // Prepare the data to insert into the database
+            const driverData = {
+                driverID: personalDetails.driverID,
+                personalDetails: {
+                    name: personalDetails.name,
+                    dateOfBirth: personalDetails.dateOfBirth,
+                    gender: personalDetails.gender,
+                    contactNumber: personalDetails.contactNumber,
+                    email: personalDetails.email,
+                    avatar:  personalDetails.avatar, // Default to an empty string if no avatar
+                },
+                vehicleDetails: {
+                    registrationNumber: vehicleDetails.registrationNumber,
+                    model: vehicleDetails.model,
+                    type: vehicleDetails.type,
+                    color: vehicleDetails.color,
+                    insuranceNumber: vehicleDetails.insuranceNumber,
+                    insuranceExpiry: vehicleDetails.insuranceExpiryDate,
+                    insuranceDocument:vehicleDetails.insuranceDocument,
+                },
+                licenseDetails: {
+                    licenseNumber: licenseDetails.licenseNumber,
+                    issuingCountry: licenseDetails.issuingCountry,
+                    issueDate: licenseDetails.issueDate,
+                    expiryDate: licenseDetails.licenseExpiry,
+                    licenseDocument: licenseDetails.license
+                },
+                emergencyContact: {
+                    name: emergencyContact.emergencyName,
+                    contactNumber: emergencyContact.emergencyContactNumber, // Default to an empty string if no email
+                },
+                bankDetails: {
+                    accountNumber:  "", // Optional
+                    bankName: "", // Optional
+                    branchCode: "", // Optional
+                },
+                verificationStatus: {
+                    identityVerified: false, // Set to false until verified
+                    vehicleVerified: false, // Set to false until verified
+                    backgroundCheck: false, // Set to false until background check is done
+                },
+                ratingsAndFeedback: {
+                    averageRating: 5, // Default rating
+                    feedback: [] // Empty feedback array initially
+                },
+                availability: {
+                    isAvailable: true, // Default to true if not provided
+                    workingHours: { start: '09:00 AM', end: '06:00 PM' }, // Default working hours
+                },
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            // Create a new Driver in the database
+            const newDriver = new Driver(driverData);
+            await newDriver.save();
+
+            // Emit an event (for real-time updates, for example) after registration
+            io.emit('newDriverRegistered', { driverID: newDriver.driverID, message: 'A new driver has registered!' });
+
+            // Return a success response
+            return { success: true, message: 'Driver successfully registered', driverID: newDriver.driverID };
+        } catch (error) {
+            console.error('Error registering driver:', error);
+            // Emit error event if something goes wrong
+            io.emit('registrationError', { message: 'Error registering driver', error: error.message });
+
+            // Return an error response
+            return { success:false, message: 'Failed to register driver', error: error.message };
+        }
+    }
+
+
     
 }
 
