@@ -5,14 +5,13 @@ const Schema = mongoose.Schema;
 const driverSchema = new Schema({
     userID: {
         type: String,
-        required: true
+        required: [true, 'User ID is required']
 
     },
     vehicleDetails: {
         registrationNumber: {
             type: String,
             required: true,
-            unique: true
         },
         model: {
             type: String,
@@ -44,7 +43,6 @@ const driverSchema = new Schema({
         licenseNumber: {
             type: String,
             required: true,
-            unique: true
         },
         licenseDocument: {
             type: String,

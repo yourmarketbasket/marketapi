@@ -63,6 +63,7 @@ class AdminServices {
 
    static async registerDeliveryDriver(data, io) {
         try {
+
             // Extract the data from the incoming registration form
             const { 
                 userID,
@@ -70,23 +71,29 @@ class AdminServices {
                 licenseDetails, 
                 emergencyContact
             } = data;
+            // ensure no missing data
+            
+            if (!data.userid || !data.vehicleDetails.registrationNumber || !data.licenseDetails.licenseNumber) {
+                return {
+                    success: false,
+                    message: 'Required fields are missing: userID, registrationNumber, or licenseNumber.',
+                };
+            }
 
             // Check if the driver is already registered using vehicle registration number or contact number
             const existingDriver = await Driver.findOne({
                 $or: [
                     { 'vehicleDetails.registrationNumber': vehicleDetails.registrationNumber },
-                    { userID: userID }
-                ]
+                    { 'licenseDetails.licenseNumber': licenseDetails.licenseNumber },
+                ],
             });
-
             if (existingDriver) {
-                // If a driver with the same vehicle registration or contact number exists, return an error
                 return {
                     success: false,
-                    message: 'Driver already registered with the same vehicle registration number or contact number.',
-                    driverID: userID
+                    message: 'Driver already registered with the same vehicle registration number or license number.',
                 };
             }
+            
 
             // Prepare the data to insert into the database
             const driverData = {
@@ -138,10 +145,10 @@ class AdminServices {
             await newDriver.save();
 
             // Emit an event (for real-time updates, for example) after registration
-            io.emit('newDriverRegistered', { driverID: newDriver.driverID, message: 'A new driver has registered!' });
+            io.emit('newDriverRegistered', { userid: data.userid, message: 'A new driver has registered!' });
 
             // Return a success response
-            return { success: true, message: 'Driver successfully registered', driverID: newDriver.driverID };
+            return { success: true, message: 'Driver successfully registered', userid: data.userid };
         } catch (error) {
             console.error('Error registering driver:', error);
             // Emit error event if something goes wrong
