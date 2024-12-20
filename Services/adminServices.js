@@ -1,6 +1,7 @@
 const StaticImage = require('../models/staticImages'); // Assuming the model is in the 'models' directory
 const mongoose = require('mongoose');
 const Driver = require('../models/driver');
+const EventEmitService = require('./eventService');
 
 class AdminServices {
     static async addStaticImages(data, io) {
@@ -144,8 +145,8 @@ class AdminServices {
             const newDriver = new Driver(driverData);
             await newDriver.save();
 
-            // Emit an event (for real-time updates, for example) after registration
-            io.emit('newDriverRegistered', { userid: data.userid, message: 'A new driver has registered!' });
+            
+            EventEmitService.emitEventMethod(io, 'add-driver-event', {userid:data.storeownderid, message:"New driver added" });
 
             // Return a success response
             return { success: true, message: 'Driver successfully registered', userid: data.userid };

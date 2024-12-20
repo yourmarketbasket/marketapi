@@ -80,7 +80,8 @@ const deliverySchema = new Schema({
         {
             productID: String,
             productName: String,
-            quantity: Number
+            quantity: Number,
+            totalCost:Number
         }
     ],
     deliveryFee: {
