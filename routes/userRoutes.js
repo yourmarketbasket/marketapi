@@ -40,8 +40,8 @@ module.exports =(io)=>{
 
     });
     // getpartial details
-    router.get('/getUserID/:phone', async(req, res)=>{
-        res.json(await UserServices.getUserID(req.params.phone))
+    router.get('/getUserPartialDataRoute/:phone', async(req, res)=>{
+        res.json(await UserServices.getUserPartialData(req.params.phone))
     })
     // getUserNotifications
     router.get('/getUserNotifications/:userid', authenticator, async(req, res)=>{

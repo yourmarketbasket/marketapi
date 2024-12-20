@@ -150,13 +150,18 @@ class UserService{
     }
     
     // getUserPartial Details
-    static async getUserID(phone){
+    static async getUserPartialData(phone){
         try{
 
             const user = await User.findOne({phone: phone});
             if(user){
                 const payload = {
-                    userid: user._id
+                    userid: user._id,
+                    phone: user.phone,
+                    zipcode: user.zipcode,
+                    address: user.address,
+                    name: user.fname.trim()+' '+user.lname.trim(),
+                    city: user.city
                 }
                 return {success: true, data: payload}
             }else{

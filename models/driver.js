@@ -8,10 +8,6 @@ const driverSchema = new Schema({
         required: true
 
     },
-    driverID: {
-        type: String,
-        required: true,
-    },
     vehicleDetails: {
         registrationNumber: {
             type: String,

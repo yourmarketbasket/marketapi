@@ -65,7 +65,7 @@ class AdminServices {
         try {
             // Extract the data from the incoming registration form
             const { 
-                personalDetails, 
+                userID,
                 vehicleDetails, 
                 licenseDetails, 
                 emergencyContact
@@ -75,7 +75,7 @@ class AdminServices {
             const existingDriver = await Driver.findOne({
                 $or: [
                     { 'vehicleDetails.registrationNumber': vehicleDetails.registrationNumber },
-                    { 'personalDetails.contactNumber': personalDetails.contactNumber }
+                    { userID: userID }
                 ]
             });
 
@@ -84,21 +84,13 @@ class AdminServices {
                 return {
                     success: false,
                     message: 'Driver already registered with the same vehicle registration number or contact number.',
-                    driverID: existingDriver.driverID
+                    driverID: userID
                 };
             }
 
             // Prepare the data to insert into the database
             const driverData = {
-                driverID: personalDetails.driverID,
-                personalDetails: {
-                    name: personalDetails.name,
-                    dateOfBirth: personalDetails.dateOfBirth,
-                    gender: personalDetails.gender,
-                    contactNumber: personalDetails.contactNumber,
-                    email: personalDetails.email,
-                    avatar:  personalDetails.avatar, // Default to an empty string if no avatar
-                },
+                userID: data.userid,
                 vehicleDetails: {
                     registrationNumber: vehicleDetails.registrationNumber,
                     model: vehicleDetails.model,
