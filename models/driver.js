@@ -3,36 +3,14 @@ const { DataSessionPage } = require('twilio/lib/rest/wireless/v1/sim/dataSession
 const Schema = mongoose.Schema;
 
 const driverSchema = new Schema({
+    userID: {
+        type: String,
+        required: true
+
+    },
     driverID: {
         type: String,
         required: true,
-    },
-    personalDetails: {
-        name: {
-            type: String,
-            required: true
-        },
-        dateOfBirth: {
-            type: Date,
-            required: true
-        },
-        gender: {
-            type: String,
-            enum: ['male', 'female', 'other'],
-            required: true
-        },
-        contactNumber: {
-            type: String,
-            required: true
-        },
-        email: {
-            type: String,
-            required: true,
-            unique: true
-        },
-        avatar: {
-            type: String,
-        }
     },
     vehicleDetails: {
         registrationNumber: {

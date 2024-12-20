@@ -2,7 +2,7 @@ const StaticImage = require('../models/staticImages'); // Assuming the model is 
 const mongoose = require('mongoose');
 const Driver = require('../models/driver');
 
-class StaticImageService {
+class AdminServices {
     static async addStaticImages(data, io) {
         try {
             // Destructure incoming data
@@ -164,4 +164,4 @@ class StaticImageService {
     
 }
 
-module.exports = StaticImageService;
+module.exports = AdminServices;

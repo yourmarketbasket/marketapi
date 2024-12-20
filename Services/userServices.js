@@ -149,6 +149,24 @@ class UserService{
         }
     }
     
+    // getUserPartial Details
+    static async getUserID(phone){
+        try{
+
+            const user = await User.findOne({phone: phone});
+            if(user){
+                const payload = {
+                    userid: user._id
+                }
+                return {success: true, data: payload}
+            }else{
+                throw new Error("User not found");
+            }
+
+        }catch(e){
+            return {success: false, message: e.message}
+        }
+    }
     
     
     
