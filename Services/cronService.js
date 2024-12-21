@@ -42,7 +42,6 @@ class CronService {
 
         // Determine if the driver should be active based on document status
         const isActive = !(isLicenseExpired || isInsuranceExpired);
-        await User.findOneAndUpdate({_id: driver.userID}, {driver: isActive});
 
         // Ensure the `active` field exists and is up to date
         if (driver.active === undefined || driver.active === '') {
