@@ -16,6 +16,10 @@ module.exports = (io) =>{
         const response = await AdminService.registerDeliveryDriver(req.body, io);
         res.json(response)
     });
+    router.get('/getStoreDriversRoute/:storeid', async (req, res)=>{
+        const response = await AdminService.getStoreDrivers(req.params.storeid);
+        res.json(response)
+    });
 
 
     return router;

@@ -2,6 +2,8 @@ const StaticImage = require('../models/staticImages'); // Assuming the model is 
 const mongoose = require('mongoose');
 const Driver = require('../models/driver');
 const EventEmitService = require('./eventService');
+const Store = require('../models/stores');
+const User = require('../models/user');
 
 class AdminServices {
     static async addStaticImages(data, io) {
@@ -63,21 +65,23 @@ class AdminServices {
    // register driver
 
    static async registerDeliveryDriver(data, io) {
+    // console.log(data)
         try {
 
             // Extract the data from the incoming registration form
             const { 
                 userID,
+                storeID,
                 vehicleDetails, 
                 licenseDetails, 
                 emergencyContact
             } = data;
             // ensure no missing data
             
-            if (!data.userid || !data.vehicleDetails.registrationNumber || !data.licenseDetails.licenseNumber) {
+            if (!data.userid || !data.storeid || !data.vehicleDetails.registrationNumber || !data.licenseDetails.licenseNumber) {
                 return {
                     success: false,
-                    message: 'Required fields are missing: userID, registrationNumber, or licenseNumber.',
+                    message: 'Required fields are missing: userID, storeID registrationNumber, or licenseNumber.',
                 };
             }
 
@@ -99,6 +103,7 @@ class AdminServices {
             // Prepare the data to insert into the database
             const driverData = {
                 userID: data.userid,
+                storeID: data.storeid,
                 vehicleDetails: {
                     registrationNumber: vehicleDetails.registrationNumber,
                     model: vehicleDetails.model,
@@ -159,6 +164,47 @@ class AdminServices {
             return { success:false, message: 'Failed to register driver', error: error.message };
         }
     }
+    // get driver details
+    static async getStoreDrivers(storeid) {
+        try {
+            // Fetch drivers associated with the store
+            const drivers = await Driver.find({ storeID: storeid, active: true});
+    
+            if (!drivers || drivers.length === 0) {
+                throw new Error('No Drivers Found');
+            }
+    
+            // Fetch user details for each driver
+            const driverDetails = await Promise.all(
+                drivers.map(async (driver) => {
+                    const user = await User.findById(driver.userID, {
+                        fname: 1,
+                        lname: 1,
+                        phone: 1,
+                        zipcode: 1,
+                        city: 1,
+                        address: 1,
+                        gender: 1,
+                        avatar: 1
+                    });
+    
+                    if (!user) {
+                        throw new Error(`User not found for userID: ${driver.userID}`);
+                    }
+    
+                    return {
+                        ...driver.toObject(), // Include driver details
+                        userDetails: user, // Add user details
+                    };
+                })
+            );
+    
+            return { success: true, data: driverDetails };
+        } catch (e) {
+            return { success: false, message: e.message };
+        }
+    }
+
 
 
     

@@ -3,6 +3,11 @@ const { DataSessionPage } = require('twilio/lib/rest/wireless/v1/sim/dataSession
 const Schema = mongoose.Schema;
 
 const driverSchema = new Schema({
+    storeID: {
+        type: String,
+        required: true
+
+    },
     userID: {
         type: String,
         required: [true, 'User ID is required']
@@ -136,6 +141,10 @@ const driverSchema = new Schema({
                 type: String // e.g., "06:00 PM"
             }
         }
+    },
+    active: {
+        type: Boolean,
+        default: true
     },
     createdAt: {
         type: Date,

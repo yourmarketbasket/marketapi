@@ -18,6 +18,7 @@
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.3",
+    "node-cron": "^3.0.3",
     "node-datetime": "^2.1.2",
     "nodemon": "^3.0.1",
     "pm2": "^5.3.1",

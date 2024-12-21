@@ -5,6 +5,7 @@ const request = require('request');
 const { spawn } = require('child_process');
 const customLimiter = require('./middleware/rateLimiter');
 const combinedMiddleware = require('./middleware/globalRateLimiter');
+const CronService = require('./Services/cronService');
 
 
 // const ip = '192.168.88.207';
@@ -75,6 +76,7 @@ const darajaApiRoutes = require('./routes/darajaApiRoutes')
 const sellerRoutes = require('./routes/sellerRoutes')
 const notificationRoutes = require('./routes/notifyRoutes')(io);
 const authenticator = require('./middleware/authenticator');
+const cronService = require('./Services/cronService');
 const authRoutes = require('./routes/auth')(io);
 const adminRoutes = require('./routes/adminRoutes')(io);
 
@@ -85,7 +87,7 @@ const corsOptions = {
   origin: ['http://localhost:4200', "https://www.nisoko.co.ke", "https://nisoko.onrender.com", "https://nisoko.co.ke"], // Your frontend origin
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 };
-
+cronService.startCronJob(io);
 app.use(cors(corsOptions));
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: false }));

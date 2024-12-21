@@ -9,6 +9,11 @@ const userSchema = new mongoose.Schema({
     rating:{
         type:Number,
     },
+    driver: {
+        type: Boolean,
+        default: false
+
+    },
     
     lname: {
         type: String,

@@ -102,6 +102,10 @@ class UserService{
                         categorizedNotifications.error.count++;
                         categorizedNotifications.error.data.push(notification);
                         break;
+                    case 'expiry':
+                        categorizedNotifications.error.count++;
+                        categorizedNotifications.error.data.push(notification);
+                        break;
                     default:
                         break; // Handle unknown types gracefully if needed
                 }

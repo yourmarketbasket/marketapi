@@ -2,6 +2,7 @@ const Notification = require('../models/notifications'); // Assuming this is the
 
 class NotificationService {
     static async addNotification(data, io) {
+        // console.log(data)
         try {
             // Check if a notification with the same userId, message, and type already exists
             const existingNotification = await Notification.findOne({
@@ -38,6 +39,7 @@ class NotificationService {
             // Return the saved notification
             return { success: true, data: notification };
         } catch (error) {
+            console.log(error);
             return { success: false, data: error.message };
         }
     }
