@@ -90,12 +90,13 @@ class AdminServices {
                 $or: [
                     { 'vehicleDetails.registrationNumber': vehicleDetails.registrationNumber },
                     { 'licenseDetails.licenseNumber': licenseDetails.licenseNumber },
+                    {userID: data.userid}
                 ],
             });
             if (existingDriver) {
                 return {
                     success: false,
-                    message: 'Driver already registered with the same vehicle registration number or license number.',
+                    message: 'Driver already registered.',
                 };
             }
             
