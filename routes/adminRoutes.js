@@ -16,6 +16,18 @@ module.exports = (io) =>{
         const response = await AdminService.registerDeliveryDriver(req.body, io);
         res.json(response)
     });
+    router.post('/updateDriverInfoRoute', async (req, res)=>{
+        const response = await AdminService.updateDriverInfo(req.body, io);
+        res.json(response)
+    });
+    router.get('/activateDeliveryPanelRoute/:id', async (req, res)=>{
+        const response = await AdminService.activateDriverPanel(req.params.id, io);
+        res.json(response)
+    });
+    router.get('/checkIfDeliveryPanelIsActiveRoute/:id', async (req, res)=>{
+        const response = await AdminService.checkDeliveryPanelIsActive(req.params.id, io);
+        res.json(response)
+    });
     router.get('/getStoreDriversRoute/:storeid', async (req, res)=>{
         const response = await AdminService.getStoreDrivers(req.params.storeid);
         res.json(response)

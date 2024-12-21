@@ -4,6 +4,7 @@ const Driver = require('../models/driver');
 const EventEmitService = require('./eventService');
 const Store = require('../models/stores');
 const User = require('../models/user');
+const NotificationService = require('./notificationService');
 
 class AdminServices {
     static async addStaticImages(data, io) {
@@ -152,7 +153,7 @@ class AdminServices {
             await newDriver.save();
 
             
-            EventEmitService.emitEventMethod(io, 'add-driver-event', {userid:data.storeownderid, message:"New driver added" });
+            EventEmitService.emitEventMethod(io, 'add-driver-event', {userid:data.storeid, message:"New driver added" });
 
             // Return a success response
             return { success: true, message: 'Driver successfully registered', userid: data.userid };
@@ -169,7 +170,7 @@ class AdminServices {
     static async getStoreDrivers(storeid) {
         try {
             // Fetch drivers associated with the store
-            const drivers = await Driver.find({ storeID: storeid, active: true});
+            const drivers = await Driver.find({ storeID: storeid});
     
             if (!drivers || drivers.length === 0) {
                 throw new Error('No Drivers Found');
@@ -203,6 +204,82 @@ class AdminServices {
             return { success: true, data: driverDetails };
         } catch (e) {
             return { success: false, message: e.message };
+        }
+    }
+
+    // update driver details
+    static async updateDriverInfo(data, io){
+        try{
+            const updateDriver = await Driver.updateOne({userID: data.userID}, {
+                backgroundCheckDocument: data.bgCheckDoc,
+                identityVerificationDocument: data.idVerificationDoc,
+                vehicleVerificationDocument: data.vehicleVerificationDoc,
+                'bankDetails.accountNumber': data.account,
+                'bankDetails.bankName': data.bank,
+                'verificationStatus.identityVerified': data.identityVerification,
+                'verificationStatus.vehicleVerified': data.vehicleVerification,
+                'verificationStatus.backgroundCheck': data.backgroundCheck
+            });
+
+            if(updateDriver){
+                const thisDriver = await Driver.findOne({userID: data.userID});
+                if(thisDriver){
+                    const notificationData = {
+                        userId: data.userID,
+                        message: "Driver Account Verification: Your account has been successfully verified.",
+                        type: 'success',
+                    }
+                    NotificationService.addNotification(notificationData, io)
+                    EventEmitService.emitEventMethod(io,'add-driver-event', {userid:thisDriver.storeID, message:"New driver added"} )
+                    return {success: true, data: thisDriver}
+
+                }else{
+                    throw new Error("Could not find the driver");
+                }
+                
+            }else{
+                throw new Error("could not update driver information");
+            }
+
+        }catch(e){
+            return {success: false, message: e.message}
+        }
+    }
+    // activate/deactivate driver panel for the driver
+    static async activateDriverPanel(userid, io){
+        try{
+            const update = await User.updateOne({_id: userid}, {
+                driver: true
+            });
+
+            if(update){
+                const data = {
+                    userId: userid,
+                    message: "Delivery Panel Activated. Your delivery panel has been activated. You can view your active jobs and process deliveries through this panel",
+                    type: "success",
+                    link: '/dashboard/delivery-panel',
+                }
+                NotificationService.addNotification(data, io)
+                return {success: true, message: "Driver Panel Actived"}
+            }
+
+        }catch(e){
+            return {success: false, message: e.message}
+        }
+
+    }
+
+    // check if delivery panel is active
+    static async checkDeliveryPanelIsActive(userid){
+        try{
+            const active = await User.findOne({_id: userid});
+            if(active){
+                return {success: true, active: active.driver}
+            }else{
+                throw new Error("Could not find driver");
+            }
+        }catch(e){
+            return {success: false, message: e.message}
         }
     }
 

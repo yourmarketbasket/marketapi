@@ -8,6 +8,18 @@ const driverSchema = new Schema({
         required: true
 
     },
+    backgroundCheckDocument: {
+        type: String,
+        required: true,
+    },
+    identityVerificationDocument: {
+        type: String,
+        required: true,
+    },
+    vehicleVerificationDocument: {
+        type: String,
+        required: true,
+    },
     userID: {
         type: String,
         required: [true, 'User ID is required']
