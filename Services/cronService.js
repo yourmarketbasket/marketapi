@@ -2,11 +2,19 @@ const cron = require('node-cron');
 const Driver = require('../models/driver'); // Driver model
 const EventLog = require('../models/eventLogs'); // EventLog model
 const NotificationService = require('./notificationService'); // Assuming NotificationService is in the same directory
+const User = require('../models/user');
 
 class CronService {
   constructor() {}
 
   startCronJob(io) {
+        /*
+    // setInterval(async () => {
+    //     console.log('Running the cron job to check expiry dates (test run every 30 seconds)...');
+    //     await this.checkExpiryDates(io);
+    //   }, 30 * 1000);*/
+
+
     cron.schedule('0 */6 * * *', async () => {
       console.log('Running the cron job to check expiry dates every 6 hours...');
       await this.checkExpiryDates(io);
@@ -34,6 +42,7 @@ class CronService {
 
         // Determine if the driver should be active based on document status
         const isActive = !(isLicenseExpired || isInsuranceExpired);
+        await User.findOneAndUpdate({_id: driver.userID}, {driver: isActive});
 
         // Ensure the `active` field exists and is up to date
         if (driver.active === undefined || driver.active === '') {

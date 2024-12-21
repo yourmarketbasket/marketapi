@@ -43,7 +43,7 @@ class AuthService {
         const loginTime = new Date();
         
 
-        return { message: 'Login Successful', success: true, token:token, userid:userId, timestamp: loginTime, status:200};
+        return { message: 'Login Successful', success: true, token:token, userid:userId, driver: user.driver, timestamp: loginTime, status:200};
       } else {
         NotificationService.addNotification({
           userId: user._id,
