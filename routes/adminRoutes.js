@@ -32,6 +32,14 @@ module.exports = (io) =>{
         const response = await AdminService.getStoreDrivers(req.params.storeid);
         res.json(response)
     });
+    router.get('/getDriverByUserIDRoute/:userid', async (req, res)=>{
+        const response = await AdminService.getDriverByUserID(req.params.userid);
+        res.json(response)
+    });
+    router.post('/updateDriverDetailsRoute', async (req, res)=>{
+        const response = await AdminService.updateDriverDetails(req.body);
+        res.json(response)
+    });
 
 
     return router;

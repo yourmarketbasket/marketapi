@@ -5,6 +5,7 @@ const EventEmitService = require('./eventService');
 const Store = require('../models/stores');
 const User = require('../models/user');
 const NotificationService = require('./notificationService');
+const CronService = require('../Services/cronService')
 
 class AdminServices {
     static async addStaticImages(data, io) {
@@ -282,6 +283,117 @@ class AdminServices {
             return {success: false, message: e.message}
         }
     }
+    // get driver by thier userid
+    static async getDriverByUserID(userid) {
+        try {
+            // Fetch the driver info first
+            const driver = await Driver.findOne({ userID: userid });
+            if (!driver) {
+                throw new Error("Driver could not be found.");
+            }
+    
+            // Fetch the corresponding user info
+            const user = await User.findOne({ _id: userid });
+            if (!user) {
+                throw new Error("User could not be found.");
+            }
+    
+            // Combine the results by adding bio info to the driver
+            const bioInfo = {
+                fname: user.fname,
+                lname: user.lname,
+                avatar: user.avatar,
+                location: user.location,
+                phone: user.phone,
+                zipcode: user.zipcode
+
+            };
+            const driverWithBio = {
+                ...driver.toObject(), // Convert Mongoose document to plain object
+                bio: bioInfo,
+            };
+    
+            return { success: true, data: driverWithBio };
+        } catch (error) {
+            console.error("Error in getDriverByUserID:", error);
+            return { success: false, message: error.message || "An unexpected error occurred." };
+        }
+    }
+    // update driver details
+    static async updateDriverDetails(data, io) {
+        try {
+            const { action, userID, dates, document, workingHours } = data;
+
+            // Validate the required parameters
+            if (!action || !userID) {
+                throw new Error("Action and userID are required.");
+            }
+
+            // Find the driver by userID
+            const driver = await Driver.findOne({ userID });
+            if (!driver) {
+                throw new Error("Driver not found.");
+            }
+
+            // Perform updates based on the action
+            switch (action) {
+                case 1: // Update working hours
+                    if (!workingHours || !workingHours.start || !workingHours.end) {
+                        throw new Error("Working hours data is required for action 1.");
+                    }
+
+                    driver.availability.workingHours = {
+                        start: workingHours.start,
+                        end: workingHours.end
+                    };
+                    break;
+
+                case 2: // Update insurance
+                    if (!data.dates || !data.dates.insuranceExpiry || !data.document) {
+                        throw new Error("Insurance expiry date and document are required for action 2.");
+                    }
+
+                    driver.vehicleDetails.insuranceExpiry = new Date(dates.insuranceExpiry);
+                    driver.vehicleDetails.insuranceDocument = document;
+                    driver.vehicleDetails.insuranceNumber = data.insuranceNo
+                    break;
+
+                case 3: // Update license
+                    if (!dates || !dates.issueDate || !dates.expiryDate || !document) {
+                        throw new Error("License issue date, expiry date, and document are required for action 3.");
+                    }
+
+                    driver.licenseDetails.issueDate = new Date(dates.issueDate);
+                    driver.licenseDetails.expiryDate = new Date(dates.expiryDate);
+                    driver.licenseDetails.licenseDocument = document;
+                    driver.licenseDetails.licenseNumber = data.licenseNo;
+                    break;
+
+                default:
+                    throw new Error("Invalid action provided.");
+            }
+
+            // Update the updatedAt field and save the changes
+            driver.updatedAt = new Date();
+            await driver.save();
+            CronService.checkExpiryDates(io);
+
+            return {
+                success: true,
+                message: "Driver details updated successfully.",
+                driver
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            };
+        }
+    }
+    
+    
+    
+    
 
 
 

@@ -25,6 +25,11 @@ const driverSchema = new Schema({
         required: [true, 'User ID is required']
 
     },
+    totalDeliveries: {
+        type: Number,
+        default: 0
+
+    },
     vehicleDetails: {
         registrationNumber: {
             type: String,
