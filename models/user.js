@@ -14,6 +14,43 @@ const userSchema = new mongoose.Schema({
         default: false
 
     },
+    assistant: {
+        storeid:{
+            type: String,            
+        },
+        active: {
+            type: Boolean,
+            default: false
+        },
+        rating: {
+            type: Number,
+            default: 5
+        },
+        packed: {
+            type: Number,
+            default: 0
+        },
+        reviews: [
+            {
+                userID: {
+                    type: String
+                },
+                comment: {
+                    type: String
+                },
+                rating: {
+                    type: Number,
+                    min: 0,
+                    max: 5
+                },
+                date: {
+                    type: Date,
+                    default: Date.now
+                }
+            }
+        ]
+
+    },
     
     lname: {
         type: String,

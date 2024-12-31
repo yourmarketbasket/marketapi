@@ -40,6 +40,7 @@ module.exports = (io) =>{
         const response = await AdminService.updateDriverDetails(req.body);
         res.json(response)
     });
+    
 
 
     return router;

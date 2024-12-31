@@ -165,7 +165,8 @@ class UserService{
                     zipcode: user.zipcode,
                     address: user.address,
                     name: user.fname.trim()+' '+user.lname.trim(),
-                    city: user.city
+                    city: user.city,
+                    avatar: user.avatar
                 }
                 return {success: true, data: payload}
             }else{
