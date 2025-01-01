@@ -40,7 +40,19 @@ module.exports = (io) =>{
         const response = await AdminService.updateDriverDetails(req.body);
         res.json(response)
     });
-    
+    router.post('/addStoreAssistantRoute', async (req, res)=>{
+        const response = await AdminService.addStoreAssistant(req.body, io);
+        res.json(response)
+    });
+    router.get('/getStoreAssistantsRoute/:storeid', async (req, res)=>{
+        const response = await AdminService.getAssistantsForStore(req.params.storeid);
+        res.json(response)
+    });
+    router.get('/getStoresAssignedToAssistantRoute/:userid', async (req, res)=>{
+        const response = await AdminService.getStoresAssignedToAssistant(req.params.userid);
+        res.json(response)
+    });
+
 
 
     return router;

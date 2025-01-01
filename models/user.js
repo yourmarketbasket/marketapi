@@ -15,9 +15,11 @@ const userSchema = new mongoose.Schema({
 
     },
     assistant: {
-        storeid:{
-            type: String,            
-        },
+        storeid: [
+            {
+                type: String, // Array of store IDs
+            }
+        ],
         active: {
             type: Boolean,
             default: false
@@ -35,6 +37,9 @@ const userSchema = new mongoose.Schema({
                 userID: {
                     type: String
                 },
+                storeID: {
+                    type: String,
+                },
                 comment: {
                     type: String
                 },
@@ -49,8 +54,7 @@ const userSchema = new mongoose.Schema({
                 }
             }
         ]
-
-    },
+    },    
     
     lname: {
         type: String,

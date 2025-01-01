@@ -1,8 +1,7 @@
 const Notification = require('../models/notifications'); // Assuming this is the model file
 
 class NotificationService {
-    static async addNotification(data, io) {
-        // console.log(data)
+    static async addNotification(data, io, eventName = 'new-notification', receiver = null) {
         try {
             // Check if a notification with the same userId, message, and type already exists
             const existingNotification = await Notification.findOne({
@@ -25,24 +24,27 @@ class NotificationService {
             });
             await notification.save();
     
-            // Emit the saved notification using Socket.IO
-            io.emit('new-notification', {
+            // Emit the saved notification using the provided event name
+            io.emit(eventName, {
                 id: notification._id,
                 userId: notification.userId,
                 message: notification.message,
                 type: notification.type,
                 link: notification.link,
                 isRead: notification.isRead,
+                EventReceiver: receiver, // Include the receiver directly in the emitted payload
                 createdAt: notification.createdAt,
             });
     
             // Return the saved notification
             return { success: true, data: notification };
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return { success: false, data: error.message };
         }
     }
+    
+    
     
 }
 

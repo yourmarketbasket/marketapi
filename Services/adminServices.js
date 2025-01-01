@@ -230,8 +230,8 @@ class AdminServices {
                         message: "Driver Account Verification: Your account has been successfully verified.",
                         type: 'success',
                     }
-                    NotificationService.addNotification(notificationData, io)
-                    EventEmitService.emitEventMethod(io,'add-driver-event', {userid:thisDriver.storeID, message:"New driver added"} )
+                    NotificationService.addNotification(notificationData, io, 'add-driver-event')
+                    
                     return {success: true, data: thisDriver}
 
                 }else{
@@ -260,7 +260,7 @@ class AdminServices {
                     type: "success",
                     link: '/dashboard/delivery-panel',
                 }
-                NotificationService.addNotification(data, io)
+                NotificationService.addNotification(data, io, 'delivery-panel-activated')
                 return {success: true, message: "Driver Panel Actived"}
             }
 
@@ -390,6 +390,113 @@ class AdminServices {
             };
         }
     }
+    // add store assistant
+    static async addStoreAssistant(data, io) {
+        try {
+            // Find the user by their `userid`
+            const user = await User.findById(data.userid);
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            // Check if the user is already an assistant for the store
+            if (user.assistant.storeid.includes(data.storeid)) {
+                return {
+                    success: false,
+                    message: 'User is already registered as an assistant for this store.',
+                };
+            }
+
+            // Add the storeid to the assistant's `storeid` array
+            user.assistant.storeid.push(data.storeid);
+
+            // Mark the assistant as active
+            user.assistant.active = true;
+
+            // Save the updated user document
+            await user.save();
+
+            // Use the `NotificationService` to notify the user
+            const notificationData = {
+                userId: data.userid,
+                message: `New Assistant Registration. You have been assigned to store ID: ${data.storeid} as an assistant.`,
+                type: 'success', // Custom notification type
+                link: `/dashboard/assistants`, // Optional link for more details
+            };
+
+            const notificationResponse = await NotificationService.addNotification(notificationData, io, 'new-assistant', data.storeid);
+
+            // Return success response with notification status
+            return {
+                success: true,
+                message: 'Store assistant added successfully.',
+                notification: notificationResponse,
+            };
+        } catch (error) {
+            console.error(error);
+            return { success: false, message: error.message };
+        }
+    }
+    // get store assistants
+    static async getAssistantsForStore(storeId) {
+        try {
+            // Find users where the specified storeId exists in the assistant.storeid array
+            const assistants = await User.find({
+                'assistant.storeid': storeId,
+                'assistant.active': true, // Optional: Only include active assistants
+            }).select('fname active lname phone assistant.rating assistant.packed'); // Select specific fields if necessary
+
+            // Check if assistants were found
+            if (assistants.length === 0) {
+                return { success: false, message: 'No assistants found for the given store ID.' };
+            }
+
+            // Return the list of assistants
+            return { success: true, data: assistants };
+        } catch (error) {
+            console.error(error);
+            return { success: false, message: error.message };
+        }
+    }
+    // get the stores assigned to a store assistant
+    static getStoresAssignedToAssistant(userid) {
+        return new Promise((resolve, reject) => {
+            User.findById(userid).select('assistant')
+                .then(user => {
+                    if (!user) {
+                        return resolve({ success: false, message: 'User not found' });
+                    }
+    
+                    // Get the store ids
+                    const storePromises = user.assistant.storeid.map(id => {
+                        return Store.findById(id).select('storename')
+                            .then(store => {
+                                if (!store) {
+                                    return { success: false, message: "Could not match stores" };
+                                }
+                                return { storename: store.storename, storeid: id };
+                            });
+                    });
+    
+                    // Wait for all store lookups to complete
+                    Promise.all(storePromises)
+                        .then(storeData => {
+                            // Filter out any stores that could not be found
+                            const validStores = storeData.filter(store => store.storename);
+                            return resolve({ success: true, data: validStores });
+                        })
+                        .catch(error => {
+                            return reject({ success: false, message: error.message });
+                        });
+                })
+                .catch(error => {
+                    return reject({ success: false, message: error.message });
+                });
+        });
+    }
+    
+    
     
     
     
