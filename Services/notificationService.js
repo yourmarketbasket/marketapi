@@ -1,7 +1,7 @@
 const Notification = require('../models/notifications'); // Assuming this is the model file
 
 class NotificationService {
-    static async addNotification(data, io, eventName = 'new-notification', receiver = null) {
+    static async addNotification(data, io, eventName = 'new-notification', receiver = null, institutions = null, assistant = null) {
         try {
             // Check if a notification with the same userId, message, and type already exists
             const existingNotification = await Notification.findOne({
@@ -32,7 +32,9 @@ class NotificationService {
                 type: notification.type,
                 link: notification.link,
                 isRead: notification.isRead,
-                EventReceiver: receiver, // Include the receiver directly in the emitted payload
+                EventReceiver: receiver,
+                institutions: institutions,
+                assistant: assistant,
                 createdAt: notification.createdAt,
             });
     

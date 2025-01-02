@@ -72,10 +72,7 @@ const orderSchema = new Schema({
     photos: [
         {
             url: { type: String, required: true },
-            type: { type: String, enum: ['packing', 'dispatch', 'delivery'], required: true },
-            description: { type: String, default: 'No description provided' },
-            resolution: { type: String }, // E.g., '1080x1920'
-            size: { type: Number } // File size in KB
+            type: { type: String, enum: ['packing', 'dispatch', 'delivery'], required: true }
         }
     ],
     orderStatus: [

@@ -251,9 +251,6 @@ class OrderService{
             return { success: false, message: error.message };
         }
     }
-    
-    
-    
     // calculate distance
     static calculateDistance(point1, point2) {
         const toRadians = (deg) => (deg * Math.PI) / 180;
@@ -274,6 +271,78 @@ class OrderService{
     
         return R * c; // Distance in kilometers
     }
+    // pack order
+    static async packOrder(data, io) {
+        const { orderId, photos, assistantId } = data;
+    
+        try {
+            // Validate input data
+            if (!orderId || !photos || photos.length === 0 || !assistantId) {
+                return { success: false, message: 'Missing required data: orderId, photos, or assistantId' };
+            }
+    
+            // Find the order by ID
+            const order = await Order.findById(orderId);
+            if (!order) {
+                return { success: false, message: 'Order not found' };
+            }
+    
+            // Update all order statuses to 'pack'
+            order.orderStatus = order.orderStatus.map((status) => {
+                return {
+                    ...status,
+                    status: 'pack', // Change the status to 'pack' for all statuses
+                    updatedBy: assistantId,
+                    date: new Date()
+                };
+            });
+
+    
+            // Get the store IDs
+            let storeIds = [];
+            order.products.forEach(product => {
+                storeIds.push(product.storeid);               
+            });
+    
+            // Add packing photos to the photos array
+            const packingPhotos = photos.map((photoUrl) => ({
+                url: photoUrl,
+                type: 'packing' // Description for packing photos
+            }));
+            order.photos.push(...packingPhotos);
+    
+            // Add an entry to the audit trail
+            order.auditTrail.push({
+                status: 'pack',
+                updatedBy: assistantId,
+                timestamp: new Date()
+            });
+    
+            // Recalculate the overall status
+            order.calculateOverallStatus();
+    
+            // Save the updated order
+            await order.save();
+    
+            // Send notifications
+            NotificationService.addNotification(
+                { userId: order.buyerid, message: `Step-[PACK]. Your Order ID(${orderId}) of TID(${order.transactionID}) marked as PACKED.`, type: "success", link: null },
+                io,
+                'new-notification',
+                order.buyerid,
+                storeIds,
+                assistantId
+            );
+    
+            return { success: true, data: order }; // Return success response with updated order
+        } catch (error) {
+            return { success: false, message: `Error packing order: ${error.message}` }; // Return error response
+        }
+    }
+    
+
+
+
 
 
 

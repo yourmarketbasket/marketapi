@@ -9,6 +9,7 @@ module.exports = (io) => {
         res.json(await OrderService.getClosestProductForOrder(req.params.id, io))
     }) 
 
+
     router.post('/markOrderStatus', authenticator, async (req, res) => {
         const data = req.body; // Contains status, orderId, and productid
         const result = await OrderService.markOrderStatus(data, io);
@@ -18,6 +19,9 @@ module.exports = (io) => {
         } else {
             res.status(400).json({ success: false, message: result.message });
         }
+    });
+    router.post('/packOrderRoute', async (req, res) => {
+        res.json(await OrderService.packOrder(req.body, io));
     });
     
 
