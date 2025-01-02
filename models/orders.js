@@ -51,6 +51,33 @@ const orderSchema = new Schema({
         type: String,
         required: true
     },
+    delivery: {
+        agentID: {
+            type: String
+        },
+        estimatedTime: {
+            type: Date
+        },
+        actualTime: {
+            type: Date
+        },
+        trackingDetails: {
+            lat: { type: Number },
+            long: { type: Number },
+            currentLocation: { type: String }, // E.g., city or warehouse
+            lastUpdatedTime: { type: Date, default: Date.now }
+        }
+
+    },
+    photos: [
+        {
+            url: { type: String, required: true },
+            type: { type: String, enum: ['packing', 'dispatch', 'delivery'], required: true },
+            description: { type: String, default: 'No description provided' },
+            resolution: { type: String }, // E.g., '1080x1920'
+            size: { type: Number } // File size in KB
+        }
+    ],
     orderStatus: [
         {
             productid: String,
@@ -62,14 +89,26 @@ const orderSchema = new Schema({
                 type: String,
                 enum: ['processing', 'confirm', 'pack', 'dispatch', 'deliver', 'complete'],
                 required: true
-            }
+            },
+            updatedBy: String
+            
         }
     ],
     overallStatus: {
         type: String,
-        enum: ['processing', 'confirmed', 'packed', 'dispatched', 'partialCompleted', 'delivered', 'completed', 'failed'],
-        default: 'processing', // Default to 'processing'
+        enum: ['processing', 'confirmed', 'packed', 'dispatched', 'partialCompleted', 'delivered', 'completed', 'failed', 'canceled'],
+        default: 'processing'
     },
+    auditTrail: [
+        {
+            status: String,
+            updatedBy: String, // User/admin ID who updated the status
+            timestamp: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ]
 });
 
 // Method to calculate the overall status
