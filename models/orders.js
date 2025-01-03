@@ -71,13 +71,13 @@ const orderSchema = new Schema({
     },
     photos: [
         {
-            url: { type: String, required: true },
+            urls: [{ type: String, required: true }],
             type: { type: String, enum: ['packing', 'dispatch', 'delivery'], required: true }
         }
     ],
     orderStatus: [
         {
-            productid: String,
+            productid: {type: String, required: true},
             date: {
                 type: Date,
                 default: Date.now

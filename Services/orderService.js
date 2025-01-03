@@ -273,12 +273,12 @@ class OrderService{
     }
     // pack order
     static async packOrder(data, io) {
-        const { orderId, photos, assistantId } = data;
+        const { orderId, photos, assistantId, productIds } = data;
     
         try {
             // Validate input data
-            if (!orderId || !photos || photos.length === 0 || !assistantId) {
-                return { success: false, message: 'Missing required data: orderId, photos, or assistantId' };
+            if (!orderId || !photos || photos.length === 0 || !assistantId || !productIds || !Array.isArray(productIds)) {
+                return { success: false, message: 'Missing required data: orderId, photos, assistantId, or productIds' };
             }
     
             // Find the order by ID
@@ -287,31 +287,70 @@ class OrderService{
                 return { success: false, message: 'Order not found' };
             }
     
-            // Update all order statuses to 'pack'
-            order.orderStatus = order.orderStatus.map((status) => {
-                return {
-                    ...status,
-                    status: 'pack', // Change the status to 'pack' for all statuses
-                    updatedBy: assistantId,
-                    date: new Date()
-                };
-            });
-
+            // Ensure orderStatus exists, initialize if missing
+            if (!Array.isArray(order.orderStatus)) {
+                order.orderStatus = [];
+            }
     
-            // Get the store IDs
+            let packedProductsCount = 0;
+            let alreadyPackedProducts = [];
+    
+            // Iterate through the productIds and update the status for each product
+            for (let productId of productIds) {
+                // Check if the specific product is already packed
+                const productStatus = order.orderStatus.find(status => status.productid === productId);
+                if (productStatus && productStatus.status === 'pack') {
+                    alreadyPackedProducts.push(productId); // Track already packed products
+                } else {
+                    // Update the order status for the specific product to 'pack'
+                    const productIndex = order.orderStatus.findIndex(status => status.productid === productId);
+                    if (productIndex >= 0) {
+                        // If the product status exists, update it
+                        order.orderStatus[productIndex] = {
+                            ...order.orderStatus[productIndex],
+                            status: 'pack',
+                            updatedBy: assistantId,
+                            date: new Date()
+                        };
+                    } else {
+                        // If no existing status for the product, add a new 'pack' status entry
+                        order.orderStatus.push({
+                            productid: productId,  // Ensure the correct field name 'productid'
+                            status: 'pack',
+                            updatedBy: assistantId,
+                            date: new Date()
+                        });
+                    }
+                    packedProductsCount++;
+                }
+            }
+    
+            // Check if all products were already packed
+            if (packedProductsCount === 0) {
+                return { success: false, message: `All selected products are already packed` };
+            }
+    
+            // Ensure products exist and get the store IDs
             let storeIds = [];
-            order.products.forEach(product => {
-                storeIds.push(product.storeid);               
-            });
+            if (Array.isArray(order.products)) {
+                order.products.forEach(product => {
+                    if (product.storeid) {
+                        storeIds.push(product.storeid);
+                    }
+                });
+            }
     
-            // Add packing photos to the photos array
-            const packingPhotos = photos.map((photoUrl) => ({
-                url: photoUrl,
-                type: 'packing' // Description for packing photos
-            }));
-            order.photos.push(...packingPhotos);
+            // Ensure photos array exists and add packing photos
+            if (!Array.isArray(order.photos)) {
+                order.photos = [];
+            }
+            const packingPhotos = { urls: photos, type: 'packing' };
+            order.photos.push(packingPhotos);
     
-            // Add an entry to the audit trail
+            // Ensure auditTrail exists and add an entry
+            if (!Array.isArray(order.auditTrail)) {
+                order.auditTrail = [];
+            }
             order.auditTrail.push({
                 status: 'pack',
                 updatedBy: assistantId,
@@ -319,9 +358,14 @@ class OrderService{
             });
     
             // Recalculate the overall status
-            order.calculateOverallStatus();
-
-            // update the number of packed orders by an assistant
+            if (typeof order.calculateOverallStatus === 'function') {
+                order.calculateOverallStatus();
+            } else {
+                // Fallback if the calculateOverallStatus method doesn't exist
+                order.overallStatus = 'packed';
+            }
+    
+            // Update the number of packed orders by the assistant
             await User.updateOne(
                 { _id: assistantId }, // Match the assistant by ID
                 {
@@ -347,6 +391,12 @@ class OrderService{
             return { success: false, message: `Error packing order: ${error.message}` }; // Return error response
         }
     }
+    
+
+
+
+
+
     
 
 
