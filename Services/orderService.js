@@ -320,6 +320,14 @@ class OrderService{
     
             // Recalculate the overall status
             order.calculateOverallStatus();
+
+            // update the number of packed orders by an assistant
+            await User.updateOne(
+                { _id: assistantId }, // Match the assistant by ID
+                {
+                    $inc: { "assistant.packed": 1 } // Increment the 'assistant.packed' field by 1
+                }
+            );
     
             // Save the updated order
             await order.save();

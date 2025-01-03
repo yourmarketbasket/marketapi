@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { DataSessionPage } = require('twilio/lib/rest/wireless/v1/sim/dataSession');
 const Schema = mongoose.Schema;
 
 const driverSchema = new Schema({
