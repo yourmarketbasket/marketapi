@@ -52,6 +52,32 @@ module.exports = (io) =>{
         const response = await AdminService.getStoresAssignedToAssistant(req.params.userid);
         res.json(response)
     });
+    // get store drivers who are unoccupied
+    router.get('/getUnoccupiedDriversRoute/:storeid', async (req, res)=>{
+        const response = await AdminService.getUnoccupiedDrivers(req.params.storeid);
+        res.json(response)
+    });
+    // dispatch order route
+    router.post('/dispatchOrderRoute', async (req, res)=>{
+        const response = await AdminService.dispatchOrder(req.body, io);
+        res.json(response)
+    });
+    // pick up order route
+    // router.post('/pickUpOrderRoute', async (req, res)=>{
+    //     const response = await AdminService.pickUpOrder(req.body, io);
+    //     res.json(response)
+    // });
+    // // deliver order route
+    // router.post('/deliverOrderRoute', async (req, res)=>{
+    //     const response = await AdminService.deliverOrder(req.body, io);
+    //     res.json(response)
+    // });
+    // // complete order route
+    // router.post('/completeOrderRoute', async (req, res)=>{
+    //     const response = await AdminService.completeOrder(req.body, io);
+    //     res.json(response)
+    // });
+    
 
 
 

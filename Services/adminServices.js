@@ -495,6 +495,127 @@ class AdminServices {
                 });
         });
     }
+    // get store drivers who are unoccupied
+    static async getUnoccupiedDrivers(storeId) {
+        try {
+            // Step 1: Fetch drivers that match the criteria
+            const drivers = await Driver.find({
+                storeID: storeId,
+            }).lean(); // Use `.lean()` for better performance
+    
+            if (!drivers || drivers.length === 0) {
+                return { success: false, data: [] }; // No drivers found
+            }
+    
+            // Step 2: Extract the userIDs from the drivers
+            const userIds = drivers.map(driver => driver.userID);
+    
+            // Step 3: Fetch user details for the extracted userIDs
+            const users = await User.find({ _id: { $in: userIds } }).lean();
+    
+            // Step 4: Combine driver and user details
+            const result = drivers.map(driver => {
+                const user = users.find(u => u._id.toString() === driver.userID.toString());
+                return user
+                    ? {
+                        driverId: driver._id,
+                        userID: driver.userID,
+                        fname: user.fname,
+                        lname: user.lname,
+                        phone: user.phone,
+                        avatar: user.avatar,
+                        vehicleType: driver.vehicleDetails?.type || '',
+                        vehicleModel: driver.vehicleDetails?.model || '',
+                        vehicleColor: driver.vehicleDetails?.color || '',
+                        vehicleNumber: driver.vehicleDetails?.registrationNumber || '',
+                    }
+                    : null; // If no user is found for the driver
+            }).filter(entry => entry !== null); // Remove any null entries (if user doesn't exist)
+    
+            return { success: true, data: result };
+        } catch (error) {
+            console.error(error.message);
+            return { success: false, message: error.message };
+        }
+    }
+    // dispatch order
+    static async dispatchOrder(data, io) {
+        try {
+            const { orderId, driverId, storeId, assistantId } = data;
+    
+            // Step 1: Check if the order is already assigned to a driver who has not declined it
+            const existingDriver = await Driver.findOne({
+                "assignment.orders": { 
+                    $elemMatch: { orderid: orderId, declined: false } 
+                }
+            });
+    
+            if (existingDriver) {
+                return { 
+                    success: false, 
+                    message: `Order ${orderId} is already assigned to driver ${existingDriver.userID}, who has not declined it.` 
+                };
+            }
+    
+            // Step 2: Find the new driver by userID
+            const driver = await Driver.findOne({ userID: driverId });
+    
+            if (!driver) {
+                return { success: false, message: `Driver not found` };
+            }
+    
+            // Step 3: Ensure the `assignment` field is initialized
+            if (!driver.assignment || typeof driver.assignment !== 'object') {
+                driver.assignment = {
+                    assigned: true,
+                    orders: [],
+                };
+            }
+    
+            // Step 4: Check if the order is already assigned to this driver
+            const existingOrder = driver.assignment.orders.find(order => order.orderid === orderId);
+            if (existingOrder) {
+                return { 
+                    success: false, 
+                    message: `Order ${orderId} is already assigned to driver ${driverId}.` 
+                };
+            }
+    
+            // Step 5: Add the new order to the driver's assignments
+            driver.assignment.orders.push({ orderid: orderId, accepted: false, declined: false });
+    
+            // Step 6: Save the updated driver document
+            await driver.save();
+    
+            // Step 7: Notify all parties
+            await NotificationService.addNotification(
+                {
+                    userId: driverId,
+                    message: `ORDER ASSIGNMENT. You have been assigned to deliver order ${orderId}. Please check your dashboard.`,
+                    type: "success",
+                    link: null,
+                },
+                io,
+                "new-notification",
+                driverId, // Receiver is the driver's userID
+                [storeId], // Institution is the storeID
+                assistantId // Assistant ID
+            );
+    
+            return { success: true, message: `Order ${orderId} assigned to driver ${driverId} successfully` };
+        } catch (error) {
+            console.error(`Error in dispatchOrder: ${error.message}`);
+            return { success: false, message: `An error occurred: ${error.message}` };
+        }
+    }
+    
+    
+    
+
+    
+    
+    
+    
     
     
     

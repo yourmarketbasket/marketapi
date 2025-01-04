@@ -7,6 +7,28 @@ const driverSchema = new Schema({
         required: true
 
     },
+    // assignment, should take objects such as order id and whether accepted
+    assignment: {
+        assigned: {
+            type: Boolean,
+            default: false  
+        },
+        orders: [{
+            orderid: {
+                type: String,
+                required: true
+            },
+            accepted: {
+                type: Boolean,
+                default: false
+            },
+            declined: {
+                type: Boolean,
+                default: false
+            }
+        }],
+    },
+    
     backgroundCheckDocument: {
         type: String,
         required: true,
