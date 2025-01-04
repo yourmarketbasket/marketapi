@@ -31,15 +31,12 @@ const driverSchema = new Schema({
     
     backgroundCheckDocument: {
         type: String,
-        required: true,
     },
     identityVerificationDocument: {
         type: String,
-        required: true,
     },
     vehicleVerificationDocument: {
         type: String,
-        required: true,
     },
     userID: {
         type: String,
