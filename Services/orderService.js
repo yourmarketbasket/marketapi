@@ -340,6 +340,7 @@ class OrderService{
                 });
             }
             // important
+            
     
             // Ensure photos array exists and add packing photos
             if (!Array.isArray(order.photos)) {
