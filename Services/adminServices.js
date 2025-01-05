@@ -67,7 +67,6 @@ class AdminServices {
    // register driver
 
    static async registerDeliveryDriver(data, io) {
-    console.log(data)
         try {
 
             // Extract the data from the incoming registration form
