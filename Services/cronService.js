@@ -14,9 +14,14 @@ class CronService {
     //     await this.checkExpiryDates(io);
     //   }, 30 * 1000);*/
 
+    cron.schedule('* * * * * *', async () => {
+      await this.checkDispatchRequestExpiry(io);
+    });
+    
+    
+
 
     cron.schedule('0 */6 * * *', async () => {
-      console.log('Running the cron job to check expiry dates every 6 hours...');
       await this.checkExpiryDates(io);
     });
   }
@@ -138,6 +143,99 @@ class CronService {
       });
     }
   }
+
+  // check expiry the dispatch request expired before driver accepts it, mark as expired and send notification
+  async checkDispatchRequestExpiry(io) {
+    try {
+      const currentDate = new Date(); // Current timestamp
+  
+      // Fetch all drivers with assignments
+      const drivers = await Driver.find({ "assignment.orders": { $exists: true, $not: { $size: 0 } } });
+  
+      for (const driver of drivers) {
+        const orders = driver.assignment.orders;
+  
+        for (const order of orders) {
+          // Calculate the time elapsed since the order was placed (in seconds and minutes)
+          const elapsedTimeSeconds = (currentDate - order.time) / 1000; // Convert to seconds
+          const elapsedTimeMinutes = Math.floor(elapsedTimeSeconds / 60); // Convert to full minutes
+  
+          // Check if the order is not accepted or declined, and expiry is not true
+          if (!order.accepted && !order.declined && !order.expired) {
+            // Send notification at 5, 10, or 15 minutes
+            if ([0,5, 10, 15].includes(elapsedTimeMinutes)) {
+              
+              // Send notification to driver
+              const notificationResponse = await NotificationService.addNotification(
+                {
+                  userId: driver.userID,
+                  message: elapsedTimeMinutes === 15 
+                    ? `Dispatch Request Expired. Order with ID: ${order.orderid} has expired.`
+                    : `Dispatch Request Expires in ${(15 - elapsedTimeMinutes)} minutes. Order with ID: ${order.orderid} is approaching expiry.`,
+
+                  type: 'error',
+                  link: `/orders/${order.orderid}`, // Optional link to order details
+                },
+                io,
+                'new-notification', // Event name
+                driver.userID // Receiver
+              );
+              
+            }
+  
+            // If more than 15 minutes have passed, mark the order as expired
+            if (elapsedTimeMinutes > 15) {
+              // Mark the order as expired if not already marked
+              if (!order.expired) {
+                order.expired = true;
+  
+                // Log the event for order expiration
+                await this.logEvent({
+                  type: 'system',
+                  message: `Order with ID: ${order.orderid} has expired for driver: ${driver._id}.`,
+                  meta: {
+                    driverId: driver._id,
+                    orderId: order.orderid,
+                    timePlaced: order.time,
+                    expiry: order.expiry,
+                    elapsedTime: elapsedTimeSeconds,
+                  },
+                });
+  
+              }
+            }
+          } 
+        }
+  
+        // Save changes to the driver document if any orders were updated
+        driver.updatedAt = currentDate;
+        await driver.save();
+      }
+  
+      // Log the completion of the expiry check
+      await this.logEvent({
+        type: 'system',
+        message: 'Dispatch request expiry check completed successfully.',
+      });
+    } catch (error) {
+      // Log any errors
+      await this.logEvent({
+        type: 'error',
+        message: 'Error in checking dispatch request expiry.',
+        meta: { error: error.message, stack: error.stack },
+      });
+    }
+  }
+  
+  
+  
+  
+  
+  
+  
+
+      // Fetch all dispatch requests
+
 
   // Helper method to log events
   async logEvent({ type, ip, route, method, statusCode, message, userId, meta }) {

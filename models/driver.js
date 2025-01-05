@@ -25,6 +25,19 @@ const driverSchema = new Schema({
             declined: {
                 type: Boolean,
                 default: false
+            },
+            expired: {
+                type: Boolean,
+                default: false
+            },
+            time: {
+                type: Date,
+                default: Date.now
+            },
+            expiry: {
+                // in 15 mins
+                type: Number,
+                default: 900
             }
         }],
     },

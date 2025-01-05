@@ -542,12 +542,17 @@ class AdminServices {
         try {
             const { orderId, driverId, storeId, assistantId } = data;
     
-            // Step 1: Check if the order is already assigned to a driver who has not declined it
+            // Step 1: Check if the order is already assigned to a driver who has neither accepted nor expired the order
             const existingDriver = await Driver.findOne({
-                "assignment.orders": { 
-                    $elemMatch: { orderid: orderId, declined: false } 
+                "assignment.orders": {
+                $elemMatch: { 
+                    orderid: orderId, 
+                    accepted: false,  // Ensure the order is not accepted
+                    expired: false    // Ensure the order is not expired
+                }
                 }
             });
+  
     
             if (existingDriver) {
                 return { 
@@ -571,22 +576,30 @@ class AdminServices {
                 };
             }
     
-            // Step 4: Check if the order is already assigned to this driver
+            // Step 4: Check if the order is already assigned to this driver and ensure it is neither accepted nor expired
             const existingOrder = driver.assignment.orders.find(order => order.orderid === orderId);
-            if (existingOrder) {
+            if (existingOrder && (!existingOrder.accepted && !existingOrder.expired)) {
                 return { 
                     success: false, 
-                    message: `Order ${orderId} is already assigned to driver ${driverId}.` 
+                    message: `Order ${orderId} is already assigned to driver ${driverId} and has not been accepted or expired.` 
+                };
+            }
+            // Step 5: Check if the order has been accepted before assigning it
+            const order = driver.assignment.orders.find(order => order.orderid === orderId);
+            if (order && order.accepted) {
+                return { 
+                    success: false, 
+                    message: `Order ${orderId} has already been accepted.` 
                 };
             }
     
-            // Step 5: Add the new order to the driver's assignments
+            // Step 6: Add the new order to the driver's assignments
             driver.assignment.orders.push({ orderid: orderId, accepted: false, declined: false });
     
-            // Step 6: Save the updated driver document
+            // Step 7: Save the updated driver document
             await driver.save();
     
-            // Step 7: Notify all parties
+            // Step 8: Notify all parties
             await NotificationService.addNotification(
                 {
                     userId: driverId,
