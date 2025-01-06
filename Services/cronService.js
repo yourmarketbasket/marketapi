@@ -149,8 +149,10 @@ class CronService {
     try {
       const currentDate = new Date(); // Current timestamp
   
-      // Fetch all drivers with assignments
-      const drivers = await Driver.find({ "assignment.orders": { $exists: true, $not: { $size: 0 } } });
+      // Fetch all drivers with active assignments
+      const drivers = await Driver.find({
+        "assignment.orders": { $exists: true, $not: { $size: 0 } },
+      });
   
       for (const driver of drivers) {
         const orders = driver.assignment.orders;
@@ -163,35 +165,34 @@ class CronService {
           // Check if the order is not accepted or declined, and expiry is not true
           if (!order.accepted && !order.declined && !order.expired) {
             // Send notification at 5, 10, or 15 minutes
-            if ([0,5, 10, 15].includes(elapsedTimeMinutes)) {
-              
-              // Send notification to driver
-              const notificationResponse = await NotificationService.addNotification(
+            if ([0, 5, 10, 15].includes(elapsedTimeMinutes)) {
+              await NotificationService.addNotification(
                 {
                   userId: driver.userID,
-                  message: elapsedTimeMinutes === 15 
-                    ? `Dispatch Request Expired. Order with ID: ${order.orderid} has expired.`
-                    : `Dispatch Request Expires in ${(15 - elapsedTimeMinutes)} minutes. Order with ID: ${order.orderid} is approaching expiry.`,
-
-                  type: 'error',
+                  message:
+                    elapsedTimeMinutes === 15
+                      ? `Dispatch Request Expired. Dispatch request for Order: ${order.orderid} has expired.`
+                      : `Dispatch Request Expires in ${
+                          15 - elapsedTimeMinutes
+                        } minutes. Order with ID: ${order.orderid} is approaching expiry.`,
+                  type: "error",
                   link: `/orders/${order.orderid}`, // Optional link to order details
                 },
                 io,
-                'new-notification', // Event name
-                driver.userID // Receiver
+                "new-notification", // Event name
+                driver.userID,
+                true // Receiver
               );
-              
             }
   
             // If more than 15 minutes have passed, mark the order as expired
-            if (elapsedTimeMinutes > 15) {
-              // Mark the order as expired if not already marked
+            if (elapsedTimeMinutes >= 15) {
               if (!order.expired) {
                 order.expired = true;
   
                 // Log the event for order expiration
                 await this.logEvent({
-                  type: 'system',
+                  type: "system",
                   message: `Order with ID: ${order.orderid} has expired for driver: ${driver._id}.`,
                   meta: {
                     driverId: driver._id,
@@ -201,10 +202,43 @@ class CronService {
                     elapsedTime: elapsedTimeSeconds,
                   },
                 });
-  
               }
             }
-          } 
+          }
+  
+          // If the order is expired and still not accepted or declined, delete it
+          if (!order.accepted && !order.declined && order.expired) {
+            // Remove the order from the database
+            await Driver.updateOne(
+              { _id: driver._id },
+              { $pull: { "assignment.orders": { orderid: order.orderid } } }
+            );
+
+            await NotificationService.addNotification(
+              {
+                userId: driver.userID,
+                message:`Dispatch Request Cleared. Dispatch request has been cleared at ${currentDate}.`,
+                type: "error",
+                link: null, // Optional link to order details
+              },
+              io,
+              "new-notification", // Event name
+              driver.userID // Receiver
+            );
+  
+            // Log the deletion event
+            await this.logEvent({
+              type: "system",
+              message: `Order with ID: ${order.orderid} has been deleted for driver: ${driver._id}.`,
+              meta: {
+                driverId: driver._id,
+                orderId: order.orderid,
+                timePlaced: order.time,
+                expiry: order.expiry,
+                elapsedTime: elapsedTimeSeconds,
+              },
+            });
+          }
         }
   
         // Save changes to the driver document if any orders were updated
@@ -214,18 +248,19 @@ class CronService {
   
       // Log the completion of the expiry check
       await this.logEvent({
-        type: 'system',
-        message: 'Dispatch request expiry check completed successfully.',
+        type: "system",
+        message: "Dispatch request expiry check completed successfully.",
       });
     } catch (error) {
       // Log any errors
       await this.logEvent({
-        type: 'error',
-        message: 'Error in checking dispatch request expiry.',
+        type: "error",
+        message: "Error in checking dispatch request expiry.",
         meta: { error: error.message, stack: error.stack },
       });
     }
   }
+  
   
   
   
