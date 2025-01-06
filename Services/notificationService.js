@@ -1,7 +1,7 @@
 const Notification = require('../models/notifications'); // Assuming this is the model file
 
 class NotificationService {
-    static async addNotification(data, io, eventName = 'new-notification', receiver = null, institutions = null, assistant = null) {
+    static async addNotification(data, io, eventName = 'new-notification', receiver = null, institutions = null, assistant = null, forceReissue = false) {
         try {
             // Check if a notification with the same userId, message, and type already exists
             const existingNotification = await Notification.findOne({
@@ -10,8 +10,14 @@ class NotificationService {
                 type: data.type,
             });
     
-            if (existingNotification) {
+            // If a notification exists and `forceReissue` is not true, return without creating a new one
+            if (existingNotification && !forceReissue) {
                 return { success: false, data: "Notification already sent." };
+            }
+    
+            // If `forceReissue` is true and notification exists, delete the existing one before reissuing
+            if (existingNotification && forceReissue) {
+                await Notification.deleteOne({ _id: existingNotification._id });
             }
     
             // Create and save the new notification
@@ -45,6 +51,7 @@ class NotificationService {
             return { success: false, data: error.message };
         }
     }
+    
     
     
     

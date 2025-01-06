@@ -563,37 +563,36 @@ class AdminServices {
         }
     }
 
-    // dispatch order
+    // Dispatch Order
     static async dispatchOrder(data, io) {
         try {
             const { orderId, driverId, storeId, assistantId } = data;
-    
+
             // Step 1: Check if the order is already assigned to a driver who has neither accepted nor expired the order
             const existingDriver = await Driver.findOne({
                 "assignment.orders": {
-                $elemMatch: { 
-                    orderid: orderId, 
-                    accepted: false,  // Ensure the order is not accepted
-                    expired: false    // Ensure the order is not expired
-                }
+                    $elemMatch: {
+                        orderid: orderId,
+                        accepted: false, // Ensure the order is not accepted
+                        expired: false   // Ensure the order is not expired
+                    }
                 }
             });
-  
-    
+
             if (existingDriver) {
-                return { 
-                    success: false, 
-                    message: `Order ${orderId} is already assigned to driver ${existingDriver.userID}, who has not declined it.` 
+                return {
+                    success: false,
+                    message: `Order ${orderId} is already assigned to driver ${existingDriver.userID}, who has not declined it.`
                 };
             }
-    
+
             // Step 2: Find the new driver by userID
             const driver = await Driver.findOne({ userID: driverId });
-    
+
             if (!driver) {
                 return { success: false, message: `Driver not found` };
             }
-    
+
             // Step 3: Ensure the `assignment` field is initialized
             if (!driver.assignment || typeof driver.assignment !== 'object') {
                 driver.assignment = {
@@ -601,31 +600,64 @@ class AdminServices {
                     orders: [],
                 };
             }
-    
-            // Step 4: Check if the order is already assigned to this driver and ensure it is neither accepted nor expired
+
+            // Step 4: Check if the order is already assigned to this driver
             const existingOrder = driver.assignment.orders.find(order => order.orderid === orderId);
-            if (existingOrder && (!existingOrder.accepted && !existingOrder.expired)) {
-                return { 
-                    success: false, 
-                    message: `Order ${orderId} is already assigned to driver ${driverId} and has not been accepted or expired.` 
-                };
+
+            if (existingOrder) {
+                // If the order is expired, mark it as not expired, update the time, and reissue the notification
+                if (existingOrder.expired) {
+                    existingOrder.expired = false;
+                    existingOrder.time = new Date();
+
+                    // Reissue the notification
+                    await NotificationService.addNotification(
+                        {
+                            userId: driverId,
+                            message: `ORDER REASSIGNMENT. The expired order ${orderId} has been reassigned to you. Please check your dashboard.`,
+                            type: "success", // Change type to indicate reassignment
+                            link: null,
+                        },
+                        io,
+                        "new-notification",
+                        driverId, // Receiver is the driver's userID
+                        [storeId], // Institution is the storeID
+                        assistantId, // Assistant ID
+                        true // Force reissue the notification
+                    );
+
+                    await driver.save();
+                    return { 
+                        success: true, 
+                        message: `Order ${orderId} reassigned to driver ${driverId} after expiration.` 
+                    };
+                }
+
+                if (!existingOrder.accepted && !existingOrder.expired) {
+                    return {
+                        success: false,
+                        message: `Order ${orderId} is already assigned to driver ${driverId} and has not been accepted or expired.`
+                    };
+                }
             }
+
             // Step 5: Check if the order has been accepted before assigning it
-            const order = driver.assignment.orders.find(order => order.orderid === orderId);
-            if (order && order.accepted) {
-                return { 
-                    success: false, 
-                    message: `Order ${orderId} has already been accepted.` 
+            if (existingOrder && existingOrder.accepted) {
+                return {
+                    success: false,
+                    message: `Order ${orderId} has already been accepted.`
                 };
             }
-    
-            // Step 6: Add the new order to the driver's assignments
-            driver.assignment.orders.push({ orderid: orderId, accepted: false, declined: false });
-    
+
+            // Step 6: Add the new order to the driver's assignments if not already present
+            if (!existingOrder) {
+                driver.assignment.orders.push({ orderid: orderId, accepted: false, declined: false, expired: false });
+            }
+
             // Step 7: Save the updated driver document
             await driver.save();
-    
-            // Step 8: Notify all parties
+
+            // Step 8: Notify the driver about the new assignment
             await NotificationService.addNotification(
                 {
                     userId: driverId,
@@ -639,13 +671,14 @@ class AdminServices {
                 [storeId], // Institution is the storeID
                 assistantId // Assistant ID
             );
-    
-            return { success: true, message: `Order ${orderId} assigned to driver ${driverId} successfully` };
+
+            return { success: true, message: `Order ${orderId} assigned to driver ${driverId} successfully.` };
         } catch (error) {
             console.error(`Error in dispatchOrder: ${error.message}`);
             return { success: false, message: `An error occurred: ${error.message}` };
         }
     }
+
     // get dispatch requests for driver
     static async getDriverDispatchRequests(driverId) {
         try {
@@ -666,6 +699,11 @@ class AdminServices {
 
             // Fetch details for each assigned order, including dispatch request parameters
             for (const order of orders) {
+                // Skip orders that have expired
+                if (order.expired) {
+                    continue;
+                }
+
                 const orderId = order.orderid;
 
                 // Fetch detailed order data
@@ -694,6 +732,7 @@ class AdminServices {
             return { success: false, message: error.message };
         }
     }
+
 
 
     
