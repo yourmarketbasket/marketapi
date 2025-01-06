@@ -5,7 +5,9 @@ const EventEmitService = require('./eventService');
 const Store = require('../models/stores');
 const User = require('../models/user');
 const NotificationService = require('./notificationService');
+const OrderService = require('./orderService');
 const CronService = require('../Services/cronService')
+const moment = require('moment');
 
 class AdminServices {
     static async addStaticImages(data, io) {
@@ -500,20 +502,43 @@ class AdminServices {
             // Step 1: Fetch drivers that match the criteria
             const drivers = await Driver.find({
                 storeID: storeId,
+                active: true, // Ensure only active drivers are fetched
+                "availability.isAvailable": true // Only drivers marked as available
             }).lean(); // Use `.lean()` for better performance
-    
+
             if (!drivers || drivers.length === 0) {
                 return { success: false, data: [] }; // No drivers found
             }
-    
-            // Step 2: Extract the userIDs from the drivers
-            const userIds = drivers.map(driver => driver.userID);
-    
-            // Step 3: Fetch user details for the extracted userIDs
+
+            // Step 2: Filter drivers based on current time and their availability schedule
+            const currentTime = moment(); // Current time in the system's timezone
+            const availableDrivers = drivers.filter(driver => {
+                if (!driver.availability || !driver.availability.workingHours) {
+                    return false; // Exclude drivers without working hours
+                }
+
+                const { start, end } = driver.availability.workingHours;
+
+                // Parse working hours into moment objects
+                const startTime = moment(start, "hh:mm A"); // e.g., "09:00 AM"
+                const endTime = moment(end, "hh:mm A"); // e.g., "06:00 PM"
+
+                // Check if the current time falls within the working hours range
+                return currentTime.isBetween(startTime, endTime, null, '[)');
+            });
+
+            if (availableDrivers.length === 0) {
+                return { success: false, data: [] }; // No drivers available within the working hours
+            }
+
+            // Step 3: Extract the userIDs from the available drivers
+            const userIds = availableDrivers.map(driver => driver.userID);
+
+            // Step 4: Fetch user details for the extracted userIDs
             const users = await User.find({ _id: { $in: userIds } }).lean();
-    
-            // Step 4: Combine driver and user details
-            const result = drivers.map(driver => {
+
+            // Step 5: Combine driver and user details
+            const result = availableDrivers.map(driver => {
                 const user = users.find(u => u._id.toString() === driver.userID.toString());
                 return user
                     ? {
@@ -530,13 +555,14 @@ class AdminServices {
                     }
                     : null; // If no user is found for the driver
             }).filter(entry => entry !== null); // Remove any null entries (if user doesn't exist)
-    
+
             return { success: true, data: result };
         } catch (error) {
             console.error(error.message);
             return { success: false, message: error.message };
         }
     }
+
     // dispatch order
     static async dispatchOrder(data, io) {
         try {
@@ -620,6 +646,56 @@ class AdminServices {
             return { success: false, message: `An error occurred: ${error.message}` };
         }
     }
+    // get dispatch requests for driver
+    static async getDriverDispatchRequests(driverId) {
+        try {
+            // Find the driver by their userID
+            const driver = await Driver.findOne({ userID: driverId });
+            if (!driver) {
+                return { success: false, message: "Driver not found" };
+            }
+
+            // Get all assigned orders for the driver
+            const orders = driver.assignment.orders;
+            if (!orders || orders.length === 0) {
+                return { success: false, message: "No orders assigned to this driver" };
+            }
+
+            const storeId = driver.storeID;
+            const dispatchRequests = [];
+
+            // Fetch details for each assigned order, including dispatch request parameters
+            for (const order of orders) {
+                const orderId = order.orderid;
+
+                // Fetch detailed order data
+                const orderData = await OrderService.getSingleOrder({ storeid: storeId, orderid: orderId });
+
+                // Structure the dispatch request parameters
+                const dispatchRequest = {
+                    orderId: orderId,
+                    storeId: storeId,
+                    accepted: order.accepted || false,
+                    declined: order.declined || false,
+                    expired: order.expired || false,
+                    time: order.time || null,
+                    expiry: order.expiry || null,
+                    orderData: orderData.success ? orderData.order : null, // Include order details if fetched successfully
+                    error: orderData.success ? null : orderData.message // Include error message if fetching order fails
+                };
+
+                // Add the dispatch request to the results
+                dispatchRequests.push(dispatchRequest);
+            }
+
+            return { success: true, data: dispatchRequests };
+        } catch (error) {
+            console.error(error.message);
+            return { success: false, message: error.message };
+        }
+    }
+
+
     
     
     

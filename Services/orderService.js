@@ -8,6 +8,7 @@ const ProductService = require('./productServices');
 const Order = require('../models/orders');
 const Store = require('../models/stores');
 const NotificationService = require('./notificationService');
+const mongoose = require('mongoose');
 
 const Product = require('../models/products');
 
@@ -389,6 +390,70 @@ class OrderService{
             return { success: true, data: order }; // Return success response with updated order
         } catch (error) {
             return { success: false, message: `Error packing order: ${error.message}` }; // Return error response
+        }
+    }
+    // get single order
+    static async getSingleOrder(data) {
+        const {storeid, orderid} = data
+        try {
+            const order = await Order.aggregate([
+                {
+                    $unwind: "$products"
+                },
+                {
+                    $match: {
+                        "products.storeid": storeid,
+                        "_id": new mongoose.Types.ObjectId(orderid) // Match specific order by ID
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "payments", // Collection to join
+                        localField: "transactionID", // Field from the orders collection
+                        foreignField: "reference", // Field from the payments collection
+                        as: "payment" // Output array field
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "users", // Collection to join
+                        let: { buyerId: { $toObjectId: "$buyerid" } }, // Convert buyerid to ObjectId
+                        pipeline: [
+                            { $match: { $expr: { $eq: ["$_id", "$$buyerId"] } } }
+                        ],
+                        as: "buyer"
+                    }
+                }
+            ]);
+    
+            if (order.length !== 0) {
+                const singleOrder = order[0]; // Get the first (and only) matched order
+    
+                // Check if products exist in the order
+                if (singleOrder.products) {
+                    // If it's an object, convert it to an array
+                    const productsArray = Array.isArray(singleOrder.products) ? singleOrder.products : [singleOrder.products];
+                    // Iterate through each product in the order
+                    for (let product of productsArray) {
+                        // Find the product using its ID and populate its buying price
+                        const productData = await Product.findById(product.productid, 'bp');
+                        if (productData) {
+                            // Assign the buying price to the product in the order
+                            product.bp = productData.bp;
+                        }
+                    }
+                    // If it was originally an object, assign the updated array back to the order
+                    if (!Array.isArray(singleOrder.products)) {
+                        singleOrder.products = productsArray.length > 0 ? productsArray[0] : null;
+                    }
+                }
+    
+                return { success: true, order: singleOrder };
+            } else {
+                throw new Error('No order found for the given store and order ID');
+            }
+        } catch (e) {
+            return { success: false, message: e.message };
         }
     }
     

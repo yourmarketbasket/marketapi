@@ -62,6 +62,11 @@ module.exports = (io) =>{
         const response = await AdminService.dispatchOrder(req.body, io);
         res.json(response)
     });
+    // get driver dispatch requests
+    router.get('/getDriverDispatchRequestsRoute/:driverid', async (req, res)=>{
+        const response = await AdminService.getDriverDispatchRequests(req.params.driverid);
+        res.json(response)
+    });
     // pick up order route
     // router.post('/pickUpOrderRoute', async (req, res)=>{
     //     const response = await AdminService.pickUpOrder(req.body, io);

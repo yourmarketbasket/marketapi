@@ -23,6 +23,10 @@ module.exports = (io) => {
     router.post('/packOrderRoute', async (req, res) => {
         res.json(await OrderService.packOrder(req.body, io));
     });
+    // getSingle order
+    router.post('/getSingleOrderRoute', async (req, res) => {
+        res.json(await OrderService.getSingleOrder(req.body));
+    });
     
 
 
