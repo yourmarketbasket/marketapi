@@ -171,17 +171,16 @@ class CronService {
                   userId: driver.userID,
                   message:
                     elapsedTimeMinutes === 15
-                      ? `Dispatch Request Expired. Dispatch request for Order: ${order.orderid} has expired.`
+                      ? `Dispatch Request Expired. Dispatch request for Order: ${order.orderid} has expired. `
                       : `Dispatch Request Expires in ${
                           15 - elapsedTimeMinutes
-                        } minutes. Order with ID: ${order.orderid} is approaching expiry.`,
+                        } minutes. Order with ID: ${order.orderid} is approaching expiry. `,
                   type: "error",
                   link: `/orders/${order.orderid}`, // Optional link to order details
                 },
                 io,
                 "new-notification", // Event name
-                driver.userID,
-                true // Receiver
+                driver.userId// Receiver
               );
             }
   
