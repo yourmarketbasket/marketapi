@@ -729,6 +729,7 @@ class ProductService {
             name: data.name,
             brand: data.brand,
             category: data.category,
+            group: data.group,
             subcategory: data.subcategory,
             description: data.description,
             features: data.features,
@@ -742,6 +743,7 @@ class ProductService {
         });
         try{
             const newProduct = await product.save();
+            io.emit('product-added')
             return { message: 'Product added successfully', success: true, data: newProduct };
         }catch(error){
             return { message: 'Product not Created.', success: false };

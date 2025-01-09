@@ -7,6 +7,7 @@ const User = require('../models/user');
 const NotificationService = require('./notificationService');
 const OrderService = require('./orderService');
 const CronService = require('../Services/cronService')
+const Category = require('../models/categories');
 const moment = require('moment');
 
 class AdminServices {
@@ -690,6 +691,16 @@ class AdminServices {
             }
 
             return { success: true, data: dispatchRequests };
+        } catch (error) {
+            console.error(error.message);
+            return { success: false, message: error.message };
+        }
+    }
+    // fetch all categories
+    static async getAllCategories() {
+        try {
+            const categories = await Category.find();
+            return { success: true, data: categories };
         } catch (error) {
             console.error(error.message);
             return { success: false, message: error.message };

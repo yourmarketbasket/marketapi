@@ -29,6 +29,10 @@ const productSchema = new Schema({
         type: String,
         required: true,
     },
+    group: {
+        type: String,
+        required: true
+    },
     model: {
         type: String,
     },

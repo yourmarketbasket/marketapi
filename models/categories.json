@@ -1,0 +1,264 @@
+[
+  {
+    "category": "TV, AUDIO AND VIDEO",
+    "subcategories": [
+      {
+        "subcategory": "Television",
+        "groups": [
+          {"group": "Digital TV"}, {"group": "Smart TV"}, {"group": "LED TV"}, {"group": "OLED TV"}, {"group": "QLED TV"}, 
+          {"group": "4K Ultra HD TV"}, {"group": "8K TV"}, {"group": "Curved TV"}, {"group": "Portable TV"}
+        ]
+      },
+      {
+        "subcategory": "Home Audio Systems",
+        "groups": [
+          {"group": "Soundbars"}, {"group": "Home Theater Systems"}, {"group": "Bluetooth Speakers"}, 
+          {"group": "Subwoofers"}, {"group": "Stereo Systems"}, {"group": "Hi-Fi Systems"}
+        ]
+      },
+      {
+        "subcategory": "Camera and Photo",
+        "groups": [
+          {"group": "DSLR Cameras"}, {"group": "Mirrorless Cameras"}, {"group": "Action Cameras"}, 
+          {"group": "Point and Shoot Cameras"}, {"group": "Instant Cameras"}, {"group": "Camera Lenses"}, 
+          {"group": "Camera Accessories"}, {"group": "Tripods"}, {"group": "Camera Flashes"}
+        ]
+      },
+      {
+        "subcategory": "Accessories",
+        "groups": [
+          {"group": "Remote Controls"}, {"group": "TV Stands"}, {"group": "Cables and Adapters"}, 
+          {"group": "Streaming Devices"}, {"group": "Wall Mounts"}, {"group": "Screen Protectors"}, {"group": "TV Antennas"}
+        ]
+      },
+      {
+        "subcategory": "Video Players and Recorders",
+        "groups": [
+          {"group": "Blu-ray Players"}, {"group": "DVD Players"}, {"group": "Projectors"}, 
+          {"group": "Media Streaming Devices"}, {"group": "Camcorders"}, {"group": "Set-Top Boxes"}
+        ]
+      }
+    ]
+  },
+  {
+    "category": "SHOES",
+    "subcategories": [
+      {
+        "subcategory": "Men's Shoes",
+        "groups": [
+          {"group": "Sports Shoes"}, {"group": "Running Shoes"}, {"group": "Formal Shoes"}, 
+          {"group": "Casual Shoes"}, {"group": "Loafers"}, {"group": "Boots"}, {"group": "Sandals"}, 
+          {"group": "Slippers"}, {"group": "Sneakers"}, {"group": "Work Shoes"}
+        ]
+      },
+      {
+        "subcategory": "Women's Shoes",
+        "groups": [
+          {"group": "Heels"}, {"group": "Flats"}, {"group": "Sneakers"}, {"group": "Boots"}, 
+          {"group": "Wedges"}, {"group": "Sports Shoes"}, {"group": "Sandals"}, {"group": "Slippers"}, 
+          {"group": "Ballet Flats"}, {"group": "Ankle Boots"}
+        ]
+      },
+      {
+        "subcategory": "Kids' Shoes",
+        "groups": [
+          {"group": "School Shoes"}, {"group": "Sports Shoes"}, {"group": "Casual Shoes"}, 
+          {"group": "Sandals"}, {"group": "Slippers"}, {"group": "Sneakers"}, {"group": "Rain Boots"}, 
+          {"group": "Dance Shoes"}, {"group": "Dress Shoes"}
+        ]
+      },
+      {
+        "subcategory": "Shoe Accessories",
+        "groups": [
+          {"group": "Shoe Insoles"}, {"group": "Laces"}, {"group": "Shoe Polish"}, 
+          {"group": "Shoe Brushes"}, {"group": "Shoe Bags"}, {"group": "Waterproof Sprays"}
+        ]
+      }
+    ]
+  },
+  {
+    "category": "PHONES & ACCESSORIES",
+    "subcategories": [
+      {
+        "subcategory": "Smartphones",
+        "groups": [
+          {"group": "Android Phones"}, {"group": "iPhones"}, {"group": "Foldable Phones"}, 
+          {"group": "5G Phones"}, {"group": "Budget Smartphones"}, {"group": "Gaming Phones"}
+        ]
+      },
+      {
+        "subcategory": "Basic Phones",
+        "groups": [
+          {"group": "Feature Phones"}, {"group": "Keypad Phones"}, {"group": "Senior-Friendly Phones"}
+        ]
+      },
+      {
+        "subcategory": "Phone Accessories",
+        "groups": [
+          {"group": "Phone Cases"}, {"group": "Screen Protectors"}, {"group": "Charging Cables"}, 
+          {"group": "Power Banks"}, {"group": "Phone Mounts"}, {"group": "Wireless Chargers"}, 
+          {"group": "Phone Stands"}, {"group": "Headphone Adapters"}
+        ]
+      },
+      {
+        "subcategory": "Wearables",
+        "groups": [
+          {"group": "Smartwatches"}, {"group": "Fitness Bands"}, {"group": "Smart Glasses"}, 
+          {"group": "VR Headsets"}, {"group": "Bluetooth Earbuds"}
+        ]
+      },
+      {
+        "subcategory": "Networking",
+        "groups": [
+          {"group": "Wi-Fi Routers"}, {"group": "Hotspots"}, {"group": "SIM Cards"}, 
+          {"group": "Range Extenders"}, {"group": "Modems"}
+        ]
+      }
+    ]
+  },
+  {
+    "category": "HOME AND KITCHEN",
+    "subcategories": [
+      {
+        "subcategory": "Kitchen Appliances",
+        "groups": [
+          {"group": "Microwaves"}, {"group": "Refrigerators"}, {"group": "Blenders"}, 
+          {"group": "Mixers"}, {"group": "Ovens"}, {"group": "Toasters"}, {"group": "Dishwashers"}, 
+          {"group": "Coffee Makers"}
+        ]
+      },
+      {
+        "subcategory": "Furniture",
+        "groups": [
+          {"group": "Sofas"}, {"group": "Beds"}, {"group": "Dining Tables"}, 
+          {"group": "Chairs"}, {"group": "TV Units"}, {"group": "Wardrobes"}, {"group": "Bookshelves"}
+        ]
+      },
+      {
+        "subcategory": "Home Decor",
+        "groups": [
+          {"group": "Wall Art"}, {"group": "Clocks"}, {"group": "Vases"}, {"group": "Rugs"}, 
+          {"group": "Curtains"}, {"group": "Pillows"}, {"group": "Candles"}, {"group": "Mirrors"}
+        ]
+      },
+      {
+        "subcategory": "Storage and Organization",
+        "groups": [
+          {"group": "Closet Organizers"}, {"group": "Storage Boxes"}, {"group": "Shelves"}, 
+          {"group": "Hangers"}, {"group": "Laundry Baskets"}, {"group": "Shoe Racks"}
+        ]
+      },
+      {
+        "subcategory": "Cleaning Supplies",
+        "groups": [
+          {"group": "Vacuum Cleaners"}, {"group": "Mops"}, {"group": "Brooms"}, 
+          {"group": "Cleaning Cloths"}, {"group": "Trash Bags"}, {"group": "Detergents"}
+        ]
+      }
+    ]
+  },
+  {
+    "category": "HEALTH AND BEAUTY",
+    "subcategories": [
+      {
+        "subcategory": "Skincare",
+        "groups": [
+          {"group": "Moisturizers"}, {"group": "Face Wash"}, {"group": "Sunscreen"}, 
+          {"group": "Serums"}, {"group": "Toners"}, {"group": "Face Masks"}, {"group": "Eye Creams"}
+        ]
+      },
+      {
+        "subcategory": "Haircare",
+        "groups": [
+          {"group": "Shampoos"}, {"group": "Conditioners"}, {"group": "Hair Oils"}, 
+          {"group": "Hair Serums"}, {"group": "Hair Dryers"}, {"group": "Straighteners"}
+        ]
+      },
+      {
+        "subcategory": "Personal Care",
+        "groups": [
+          {"group": "Razors"}, {"group": "Trimmers"}, {"group": "Electric Toothbrushes"}, 
+          {"group": "Nail Clippers"}, {"group": "Epilators"}, {"group": "Massagers"}
+        ]
+      },
+      {
+        "subcategory": "Makeup",
+        "groups": [
+          {"group": "Foundations"}, {"group": "Lipsticks"}, {"group": "Mascaras"}, 
+          {"group": "Eyeliners"}, {"group": "Blushes"}, {"group": "Makeup Brushes"}
+        ]
+      }
+    ]
+  },
+  {
+    "category": "COMPUTER AND ACCESSORIES",
+    "subcategories": [
+      {
+        "subcategory": "Laptops",
+        "groups": [
+          {"group": "Gaming Laptops"}, {"group": "Business Laptops"}, {"group": "2-in-1 Laptops"}, 
+          {"group": "Budget Laptops"}, {"group": "Ultrabooks"}, {"group": "MacBooks"}
+        ]
+      },
+      {
+        "subcategory": "Desktop Computers",
+        "groups": [
+          {"group": "Gaming Desktops"}, {"group": "All-in-One PCs"}, {"group": "Mini PCs"}, {"group": "Workstations"}
+        ]
+      },
+      {
+        "subcategory": "Computer Peripherals",
+        "groups": [
+          {"group": "Keyboards"}, {"group": "Mice"}, {"group": "Monitors"}, {"group": "Printers"}, 
+          {"group": "Webcams"}, {"group": "External Hard Drives"}
+        ]
+      },
+      {
+        "subcategory": "Networking",
+        "groups": [
+          {"group": "Wi-Fi Routers"}, {"group": "Switches"}, {"group": "Range Extenders"}, 
+          {"group": "Cables and Adapters"}
+        ]
+      },
+      {
+        "subcategory": "Accessories",
+        "groups": [
+          {"group": "Laptop Bags"}, {"group": "Cooling Pads"}, {"group": "Docking Stations"}, {"group": "USB Hubs"}
+        ]
+      }
+    ]
+  },
+  {
+    "category": "AUTOMOTIVE",
+    "subcategories": [
+      {
+        "subcategory": "Car Accessories",
+        "groups": [
+          {"group": "Seat Covers"}, {"group": "Floor Mats"}, {"group": "Car Chargers"}, 
+          {"group": "Dash Cameras"}, {"group": "Car Organizers"}, {"group": "Steering Covers"}
+        ]
+      },
+      {
+        "subcategory": "Motorcycle Accessories",
+        "groups": [
+          {"group": "Helmets"}, {"group": "Gloves"}, {"group": "Motorcycle Covers"}, 
+          {"group": "Saddlebags"}, {"group": "Motorcycle Lights"}
+        ]
+      },
+      {
+        "subcategory": "Tools and Equipment",
+        "groups": [
+          {"group": "Wrenches"}, {"group": "Car Jacks"}, {"group": "Air Compressors"}, 
+          {"group": "Battery Chargers"}, {"group": "Tool Kits"}
+        ]
+      },
+      {
+        "subcategory": "Tires and Rims",
+        "groups": [
+          {"group": "All-Season Tires"}, {"group": "Winter Tires"}, {"group": "Performance Tires"}, 
+          {"group": "Off-Road Tires"}, {"group": "Rims"}
+        ]
+      }
+    ]
+  }
+]

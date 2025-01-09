@@ -67,6 +67,23 @@ module.exports = (io) =>{
         const response = await AdminService.getDriverDispatchRequests(req.params.driverid);
         res.json(response)
     });
+    // get all categories
+    router.get('/getAllCategoriesRoute', async (req, res)=>{
+        const response = await AdminService.getAllCategories();
+        res.json(response)
+    });
+    // get all stores
+    router.get('/getAllStoresRoute', async (req, res)=>{
+        const response = await AdminService.getAllStores();
+        res.json(response)
+    });
+    // get all drivers
+    router.get('/getAllDriversRoute', async (req, res)=>{
+        const response = await AdminService.getAllDrivers();
+        res.json(response)
+    });
+    // get all assistants
+
     // pick up order route
     // router.post('/pickUpOrderRoute', async (req, res)=>{
     //     const response = await AdminService.pickUpOrder(req.body, io);

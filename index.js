@@ -360,16 +360,12 @@ app.post('/advancedAction', async (req, res)=>{
 })
 
 // review products
-app.post('/reviewproducts', authenticator, async (req, res)=>{
-  if (req.body.allowed) {
-    try {
-      const products = await Product.find();
-      res.status(200).send(products);
-    } catch (error) {
-      res.status(500).send({ error: 'Failed to fetch products' });
-    }
-  } else {
-    res.status(403).send({ error: 'Not allowed' });
+app.get('/reviewproducts', authenticator, async (req, res)=>{
+  try {
+    const products = await Product.find();
+    res.status(200).send(products);
+  } catch (error) {
+    res.status(500).send({ error: 'Failed to fetch products' });
   }
 
 });
