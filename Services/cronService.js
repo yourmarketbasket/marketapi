@@ -14,7 +14,7 @@ class CronService {
     //     await this.checkExpiryDates(io);
     //   }, 30 * 1000);*/
 
-    cron.schedule('* * * * * *', async () => {
+    cron.schedule('*/20 * * * * *', async () => {
       await this.checkDispatchRequestExpiry(io);
     });
     
