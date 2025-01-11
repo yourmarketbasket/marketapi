@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const EventEmitService = require('./eventService');
 const NotificationService = require('./notificationService');
 const Notification = require('../models/notifications');
+const AdminServices = require('./adminServices');
 class UserService{
 
     // change password
@@ -50,6 +51,13 @@ class UserService{
             const updatedUser = await User.findOneAndUpdate(filter, update);
     
             if (updatedUser) {
+                AdminServices.sendEmail({
+                    "name": `${user.fname} ${user.lname}`,
+                    "email": user.email,
+                    "subject": "Password Update",
+                    "message": "Your password has been changed successfully at " + new Date().toLocaleString()
+                  }
+                  );
                 // Notify the user that the password has been successfully changed
                 NotificationService.addNotification({
                     userId: data.userid,
@@ -90,6 +98,13 @@ class UserService{
             // update the value for avatar in the user document
             const updatedUser = await User.findOneAndUpdate(filter, update);
             if (updatedUser) {
+                AdminServices.sendEmail({
+                    "name": `${user.fname} ${user.lname}`,
+                    "email": user.email,
+                    "subject": "Profile Avatar Update",
+                    "message": "Your profile avatar has been changed successfully at " + new Date().toLocaleString()
+                  }
+                  );
                 NotificationService.addNotification({
                     userId: data.userid,
                     message: "Profile Image Update. Avatar Changed Successfully at " + new Date().toLocaleString(),
@@ -316,6 +331,7 @@ class UserService{
     // update user email
     static async updateUserEmail(data, io){
         try{
+            const thisUser = await User.findOne({_id: data.userid});
             const user = await User.findByIdAndUpdate(
                 data.userid,
                 {
@@ -326,7 +342,13 @@ class UserService{
                 } 
             )
             if(user){
-                EventEmitService.emitEventMethod(io, "new-notification", {userid:data.userid, message: "Email Updated Successfully"});
+                AdminServices.sendEmail({
+                    "name": `${thisUser.fname} ${thisUser.lname}`,
+                    "email": data.email,
+                    "subject": "Email Update Successful",
+                    "message": "This email has been successfully added for communnication and followup purposes at Nisoko Technologies." + new Date().toLocaleString()
+                  }
+                  );
                 NotificationService.addNotification({
                     userId: data.userid,
                     message: "Email Update. Email Updated Successfully. Your new email is "+data.email,

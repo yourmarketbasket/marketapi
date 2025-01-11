@@ -1,5 +1,6 @@
 const express = require('express');
 const AdminService = require('../Services/adminServices');
+const MailService = require('../Services/mailService');
 const router = express.Router();
 
 module.exports = (io) =>{
@@ -72,9 +73,14 @@ module.exports = (io) =>{
         const response = await AdminService.getAllCategories();
         res.json(response)
     });
+    // send email route
+    router.post('/sendEmailRoute', async (req, res)=>{
+        const response = await AdminService.sendEmail(req.body, io);
+        res.json(response)
+    });
     // get all stores
     router.get('/getAllStoresRoute', async (req, res)=>{
-        const response = await AdminService.getAllStores();
+        const response = await AdminService.sendEmail(req.body);
         res.json(response)
     });
     // get all drivers

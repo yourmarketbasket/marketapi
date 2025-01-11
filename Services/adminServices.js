@@ -9,6 +9,7 @@ const OrderService = require('./orderService');
 const CronService = require('../Services/cronService')
 const Category = require('../models/categories');
 const moment = require('moment');
+const MailService = require('./mailService');
 
 class AdminServices {
     static async addStaticImages(data, io) {
@@ -66,6 +67,20 @@ class AdminServices {
             console.error('Error fetching static images:', error.message);
             return { success: false, data: error.message };
         }
+    }
+    // send email
+    static async sendEmail(data){
+        const {name, email, message, subject} = data
+        try{
+            const mailService = new MailService();
+            await mailService.sendEmail(email, subject, data)
+
+            return {success: true, data: 'Email sent successfully'}
+
+        }catch(e){
+            return {success: false, data: e.message}
+        }
+
     }
    // register driver
 
@@ -706,6 +721,8 @@ class AdminServices {
             return { success: false, message: error.message };
         }
     }
+
+    
 
 
     
