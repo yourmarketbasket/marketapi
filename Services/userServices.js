@@ -8,19 +8,91 @@ const NotificationService = require('./notificationService');
 const Notification = require('../models/notifications');
 class UserService{
 
+    // change password
+    // change password
+    static async changeUserPassword(data, io) {
+        // console.log(data)
+        try {
+            // Check if the user exists
+            const user = await User.findOne({ _id: data.userid });
+            if (!user) {
+                return { message: 'User not found', success: false };
+            }
+    
+            // Ensure passwords are provided
+            if (!data.currentPassword || !data.newPassword) {
+                return { message: 'Current password and new password are required', success: false };
+            }
+    
+            // Check if the current password is correct by comparing the hash
+            const isPasswordCorrect = await bcrypt.compare(data.currentPassword, user.password);
+            if (!isPasswordCorrect) {
+                return { message: 'Current password is incorrect', success: false };    
+            }
+    
+            // Check if the new password is the same as the current password
+            if (data.currentPassword === data.newPassword) {
+                return { message: 'New password cannot be the same as the current password', success: false };
+            }
+    
+            // Generate a new hash for the new password
+            const salt = bcrypt.genSaltSync(10);
+            const hash = bcrypt.hashSync(data.newPassword, salt);
+    
+            // Prepare filter and update objects
+            const filter = { _id: data.userid };
+            const update = { 
+                password: hash, 
+                update: new Date() 
+            };
+    
+            // Update the password in the user document
+            const updatedUser = await User.findOneAndUpdate(filter, update);
+    
+            if (updatedUser) {
+                // Notify the user that the password has been successfully changed
+                NotificationService.addNotification({
+                    userId: data.userid,
+                    message: "Password Changed. Password changed successfully at " + new Date().toLocaleString(),
+                    type: "success",
+                    link: null, // Optional field
+                    isRead: false,
+                }, io); 
+    
+                return { message: 'Password changed successfully', success: true };
+            } else {
+                // Notify if there was an error updating the password
+                NotificationService.addNotification({   
+                    userId: data.userid,
+                    message: "Error Changing Password. Password could not be updated at " + new Date().toLocaleString(),
+                    type: "error",
+                    link: null, // Optional field
+                    isRead: false,
+                }, io); 
+                return { message: 'Error changing password', success: false };
+            }
+        } catch (error) {
+            console.error('Error in changeUserPassword:', error);
+            return { message: 'An error occurred while changing the password', success: false };
+        }
+    }
+    
+    
+
+
     // change avatar
     static async changeUserAvatar(data, io){
          // find a user by the id
         const user = await User.findOne({ _id: data.userid });
         if (user) {
             const filter = { _id: data.userid };
-            const update = { avatar: data.avatar };
+            const update = { avatar: data.avatar, update: new Date() };
             // update the value for avatar in the user document
             const updatedUser = await User.findOneAndUpdate(filter, update);
             if (updatedUser) {
                 NotificationService.addNotification({
                     userId: data.userid,
-                    message: "Avatar Changed Successfully",
+                    message: "Profile Image Update. Avatar Changed Successfully at " + new Date().toLocaleString(),
                     type: "success",
                     link: null, // Optional field
                     isRead: false, },  io); 
@@ -29,7 +101,7 @@ class UserService{
             } else {
                 NotificationService.addNotification({
                     userId: data.userid,
-                    message: "Error Changing Avatar",
+                    message: "Error Changing Avatar. Avatar could not be updated. " + new Date().toLocaleString(),
                     type: "error",
                     link: null, // Optional field
                     isRead: false, },  io); 
@@ -239,6 +311,42 @@ class UserService{
             console.log(e)
             return {success:false, message: "Some error occured"};
 
+        }
+    }
+    // update user email
+    static async updateUserEmail(data, io){
+        try{
+            const user = await User.findByIdAndUpdate(
+                data.userid,
+                {
+                    $set: {
+                        email: data.email,
+                        updated: Date.now()
+                    }
+                } 
+            )
+            if(user){
+                EventEmitService.emitEventMethod(io, "new-notification", {userid:data.userid, message: "Email Updated Successfully"});
+                NotificationService.addNotification({
+                    userId: data.userid,
+                    message: "Email Update. Email Updated Successfully. Your new email is "+data.email,
+                    type: "success",
+                    link: null, // Optional field
+                    isRead: false, },  io); 
+                return {success:true, message:"Email updated"}
+            }else{
+                NotificationService.addNotification({
+                    userId: data.userid,    
+                    message: "Email Update Error. Could not update record with email "+data.email,
+                    type: "error",
+                    link: null, // Optional field   
+                    isRead: false, },  io);
+                return {success:false, message: "Could not update email"};
+            }
+
+        }catch(e){  
+            console.log(e)
+            return {success:false, message: "Some error occured"};
         }
     }
 

@@ -451,17 +451,23 @@ app.post('/searchProduct', async (req, res) => {
 // get user data using their mobile phone
 app.get('/getUser/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id); // find user by ID
+    const user = await User.findById(req.params.id); // Find user by ID
     if (!user) {
-      return res.status(404).json({ message: 'User not found' }); // handle case where user is not found
-    }else{
-      res.send({ message: 'User found', success: true, data: user });
-    }// return user object if found
+      return res.status(404).json({ message: 'User not found' }); // Handle case where user is not found
+    }
+
+    // Exclude the password and location fields using destructuring
+    const { password, ...userWithoutSensitiveData } = user.toObject();
+
+    // Return the sanitized user object
+    res.json({ message: 'User found', success: true, data: userWithoutSensitiveData });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Server error' }); // handle other errors
+    res.status(500).json({ message: 'Server error' }); // Handle server errors
   }
 });
+
+
 
 
 app.post('/editProduct', async (req, res)=>{  

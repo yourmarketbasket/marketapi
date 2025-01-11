@@ -149,6 +149,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         // required : true,
     },
+    updated: {
+        type: Date,
+        default: Date.now
+    },
     verified: {
         required: true,
         type: Boolean,

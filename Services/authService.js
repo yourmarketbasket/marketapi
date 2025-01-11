@@ -7,6 +7,7 @@ const authenticator = require('../middleware/authenticator');
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const verifySid = process.env.TWILIO_VERIFY_SID;
+const crypto = require('crypto');
 const client = require("twilio")(accountSid, authToken);
 const NotificationService = require('./notificationService')
 
@@ -377,6 +378,9 @@ class AuthService {
   
     throw new Error('Max retries reached. Unable to complete the request.');
   }
+
+  // encrypt data with cryptojs
+  // static encryptData(data) {
   
 
   static async verifyTwilioOTPCode(mobilenumber, otpcode, timeoutMillis = 5000, maxRetries = 3) {

@@ -149,6 +149,16 @@ module.exports =(io)=>{
         res.status(200).send(response)
         // response = await 
     })
+    // update user email
+    router.post('/updateEmailRoute', authenticator, async(req, res)=>{
+        response = await UserServices.updateUserEmail(req.body, io);
+        res.json(response)
+    })
+    // change password
+    router.post('/changePasswordRoute', authenticator, async(req, res)=>{
+        response = await UserServices.changeUserPassword(req.body, io);
+        res.json(response)
+    })
 
     return router;
 
