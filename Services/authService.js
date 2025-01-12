@@ -12,9 +12,6 @@ const client = require("twilio")(accountSid, authToken);
 const NotificationService = require('./notificationService')
 
 class AuthService {
-  static async testFunction(io){
-    io.emit('anotherevent', 'Hello from the server!');
-  }
     
     // login and authenticate
   static async authenticateUser(phone, password, io) {
@@ -48,15 +45,14 @@ class AuthService {
       } else {
         NotificationService.addNotification({
           userId: user._id,
-          message: "Login unsuccessful",
+          message: "Login unsuccessful. Trial atttempt at "+new Date(),
           type: "error",
           link: null, // Optional field
           isRead: false, },  io); 
         return { message: 'Invalid Details', success: false, status:200};
       }
     } catch (error) {
-      console.log(error.message)
-      throw error; // You can rethrow the error or handle it as needed
+      return { message: "Login unsuccessful", success: false};
     }
   }
 //   send otp

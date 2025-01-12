@@ -739,7 +739,9 @@ class ProductService {
             sp: data.sp,
             avatar: data.images,
             storeid: data.storeid,
-            discount:0
+            discount:0,
+            color: data.color,
+            size: data.size
         });
         try{
             const newProduct = await product.save();

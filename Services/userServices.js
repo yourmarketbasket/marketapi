@@ -346,7 +346,7 @@ class UserService{
                     "name": `${thisUser.fname} ${thisUser.lname}`,
                     "email": data.email,
                     "subject": "Email Update Successful",
-                    "message": "This email has been successfully added for communnication and followup purposes at Nisoko Technologies." + new Date().toLocaleString()
+                    "message": "This email has been successfully added for communication and followup purposes at Nisoko Technologies." + new Date().toLocaleString()
                   }
                   );
                 NotificationService.addNotification({
