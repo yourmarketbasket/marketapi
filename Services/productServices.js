@@ -741,7 +741,8 @@ class ProductService {
             storeid: data.storeid,
             discount:0,
             color: data.color,
-            size: data.size
+            size: data.size,
+            addedBy: data.addedBy
         });
         try{
             const newProduct = await product.save();

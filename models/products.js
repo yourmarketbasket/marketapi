@@ -34,6 +34,10 @@ const productSchema = new Schema({
         required: true   
 
     },
+    addedBy: {
+        type: String,
+        required: true,
+    },
     size: {
         type: [String], 
         required:true       
