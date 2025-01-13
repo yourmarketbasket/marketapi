@@ -579,41 +579,59 @@ class AdminServices {
         }
     }
 
-    // dispatch order
     static async sendDispatchOrderRequest(data, io) {
         try {
             const { orderId, driverId, storeId, assistantId } = data;
     
-            // Step 1: Find the driver
+            // Step 1: Check if the order is already assigned to any driver
+            const activeAssignment = await Driver.findOne({
+                "assignment.orders": {
+                    $elemMatch: {
+                        orderid: orderId,
+                        accepted: false,
+                        expired: false,
+                        declined: false,
+                    },
+                },
+            });
+    
+            if (activeAssignment) {
+                return {
+                    success: false,
+                    message: `Dispatch request already sent for this order. The request has not yet expired or declined.`,
+                };
+            }
+    
+            // Step 2: Find the requested driver
             const driver = await Driver.findOne({ userID: driverId });
     
             if (!driver) {
-                return { success: false, message: `Driver not found` };
+                return { success: false, message: `Driver not found.` };
             }
     
-            // Step 2: Ensure the `assignment` field is initialized
-            if (!driver.assignment || typeof driver.assignment !== 'object') {
+            // Step 3: Ensure the `assignment` field is initialized
+            if (!driver.assignment || typeof driver.assignment !== "object") {
                 driver.assignment = {
                     assigned: true,
                     orders: [],
                 };
             }
     
-            // Step 3: Check if the order is already assigned to this driver
+            // Step 4: Check if the order is already assigned to this driver
             const existingOrder = driver.assignment.orders.find(order => order.orderid === orderId);
     
             if (existingOrder) {
                 if (!existingOrder.expired && !existingOrder.declined && !existingOrder.accepted) {
                     return {
                         success: false,
-                        message: `Order ${orderId} is already assigned to driver ${driverId}, and the request has neither been declined nor expired.`,
+                        message: `Request already sent to this driver and the request has not yet expired or declined.`,
                     };
                 }
     
                 if (existingOrder.declined) {
                     return {
                         success: false,
-                        message: `Driver ${driverId} has already declined the request for order ${orderId}.`,
+                        message: `This driver has already declined the request.`,
                     };
                 }
     
@@ -625,7 +643,7 @@ class AdminServices {
                     await driver.save();
                 }
             } else {
-                // Step 4: Add the new order to the driver's assignments if not already present
+                // Step 5: Add the new order to the driver's assignments if not already present
                 driver.assignment.orders.push({
                     orderid: orderId,
                     accepted: false,
@@ -636,11 +654,11 @@ class AdminServices {
                 await driver.save();
             }
     
-            // Step 5: Notify the driver about the new or re-sent request
+            // Step 6: Notify the driver about the new or re-sent request
             await NotificationService.addNotification(
                 {
                     userId: driverId,
-                    message: `ORDER ASSIGNMENT. You have been assigned to deliver order ${orderId}. Please check your dashboard.`,
+                    message: `Order Delivery Request. You have been assigned to deliver order ${orderId}. This request expires in 15 minutes. Please check your dashboard.`,
                     type: "success",
                     link: null,
                 },
@@ -649,7 +667,9 @@ class AdminServices {
                 driverId, // Receiver is the driver's userID
                 [storeId], // Institution is the storeID
                 assistantId,
-                true // Assistant ID
+                true,
+                true,
+                new Date(Date.now() + 15 * 60 * 1000)
             );
     
             return { success: true, message: `Order ${orderId} assigned to driver ${driverId} successfully.` };

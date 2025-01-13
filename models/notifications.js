@@ -25,6 +25,14 @@ const notificationSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    expires: {
+        type: Boolean,
+        default: false
+    },
+    expiresAt: {
+        type: Date,
+        default: Date.now
     }
 });
 
