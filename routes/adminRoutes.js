@@ -59,8 +59,8 @@ module.exports = (io) =>{
         res.json(response)
     });
     // dispatch order route
-    router.post('/dispatchOrderRoute', async (req, res)=>{
-        const response = await AdminService.dispatchOrder(req.body, io);
+    router.post('/sendDispatchOrderRequestRoute', async (req, res)=>{
+        const response = await AdminService.sendDispatchOrderRequest(req.body, io);
         res.json(response)
     });
     // get driver dispatch requests

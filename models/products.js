@@ -25,6 +25,10 @@ const productSchema = new Schema({
         type: String,
         required: true,
     },
+    SKU: {
+        type: String,
+        required: true,
+    },
     subcategory: {
         type: String,
         required: true,
