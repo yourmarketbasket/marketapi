@@ -104,7 +104,7 @@ class MailService {
     const htmlContent = this.createHtmlContent(data);
 
     const mailOptions = {
-      from: "Nisoko Technologies", // Sender's name and email
+      from: `"Nisoko" <${process.env.EMAIL}>`, // Sender's name and email
       to,                                        // Recipient(s)
       subject,                                   // Email subject
       html: htmlContent,                         // HTML content
