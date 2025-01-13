@@ -157,38 +157,66 @@ class CronService {
         for (const driver of drivers) {
             const orders = driver.assignment.orders;
 
-            for (const order of orders) {
+            // Iterate over the orders backward to safely modify the array
+            for (let i = orders.length - 1; i >= 0; i--) {
+                const order = orders[i];
+
                 // Calculate the time elapsed since the order was placed (in minutes)
                 const elapsedTimeMinutes = Math.floor(
                     (currentDate - new Date(order.time)) / (1000 * 60)
                 ); // Convert to minutes
 
-                // Check if the order is not accepted, not declined, and not already expired
+                // Mark the order as expired if not yet expired and surpassing the time threshold
                 if (!order.accepted && !order.declined && !order.expired) {
-                    // If more than 15 minutes have passed, mark the order as expired
                     if (elapsedTimeMinutes >= 15) {
                         order.expired = true;
-                        
-                        
-                        // Log the event for order expiration
+
+                        // Log the event for marking the order as expired
                         await this.logEvent({
-                          type: "system",
-                          message: `Order with ID: ${order.orderid} has expired for driver: ${driver._id}.`,
-                          meta: {
+                            type: "system",
+                            message: `Order with ID: ${order.orderid} has expired for driver: ${driver._id}.`,
+                            meta: {
+                                driverId: driver._id,
+                                orderId: order.orderid,
+                                timePlaced: order.time,
+                                elapsedTimeMinutes,
+                            },
+                        });
+
+                        // Emit event for marking the order as expired
+                        io.emit("order-expired", {
                             driverId: driver._id,
                             orderId: order.orderid,
-                            timePlaced: order.time,
-                            elapsedTimeMinutes,
-                          },
                         });
                     }
                 }
-              }
-              
-              // Save changes to the driver document if any orders were updated
-              driver.updatedAt = currentDate;
-              await driver.save();
-              io.emit("order-expired", {driverId: driver._id});
+
+                // Remove the expired order if it's already expired and not accepted or declined
+                if (order.expired && !order.accepted && !order.declined) {
+                    // Log the removal of the expired order
+                    await this.logEvent({
+                        type: "system",
+                        message: `Expired order with ID: ${order.orderid} is being removed for driver: ${driver._id}.`,
+                        meta: {
+                            driverId: driver._id,
+                            orderId: order.orderid,
+                        },
+                    });
+
+                    // Emit event for removing the expired order
+                    io.emit("order-removed", {
+                        driverId: driver._id,
+                        orderId: order.orderid,
+                    });
+
+                    // Remove the order from the array
+                    orders.splice(i, 1);
+                }
+            }
+
+            // Save changes to the driver document if any orders were updated or removed
+            driver.updatedAt = currentDate;
+            await driver.save();
         }
 
         // Log the completion of the expiry check
@@ -205,6 +233,10 @@ class CronService {
         });
     }
 }
+
+
+
+
 
   
   
