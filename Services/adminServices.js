@@ -8,7 +8,7 @@ const NotificationService = require('./notificationService');
 const OrderService = require('./orderService');
 const CronService = require('../Services/cronService')
 const Category = require('../models/categories');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const MailService = require('./mailService');
 
 class AdminServices {
@@ -355,13 +355,14 @@ class AdminServices {
             // Perform updates based on the action
             switch (action) {
                 case 1: // Update working hours
-                    if (!workingHours || !workingHours.start || !workingHours.end) {
-                        throw new Error("Working hours data is required for action 1.");
+                    if (!workingHours || !workingHours.start || !workingHours.end || !workingHours.timezone) {
+                        throw new Error("Working hours data including timezone is required for action 1.");
                     }
 
                     driver.availability.workingHours = {
                         start: workingHours.start,
-                        end: workingHours.end
+                        end: workingHours.end,
+                        timezone: workingHours.timezone
                     };
                     break;
 
@@ -527,17 +528,17 @@ class AdminServices {
             }
 
             // Step 2: Filter drivers based on current time and their availability schedule
-            const currentTime = moment(); // Current time in the system's timezone
             const availableDrivers = drivers.filter(driver => {
-                if (!driver.availability || !driver.availability.workingHours) {
-                    return false; // Exclude drivers without working hours
+                if (!driver.availability || !driver.availability.workingHours || !driver.availability.workingHours.timezone) {
+                    return false; // Exclude drivers without working hours or timezone
                 }
 
-                const { start, end } = driver.availability.workingHours;
+                const { start, end, timezone } = driver.availability.workingHours;
+                const currentTime = moment().tz(timezone);
 
-                // Parse working hours into moment objects
-                const startTime = moment(start, "hh:mm A"); // e.g., "09:00 AM"
-                const endTime = moment(end, "hh:mm A"); // e.g., "06:00 PM"
+                // Parse working hours into moment objects with the specified timezone
+                const startTime = moment.tz(start, "hh:mm A", timezone);
+                const endTime = moment.tz(end, "hh:mm A", timezone);
 
                 // Check if the current time falls within the working hours range
                 return currentTime.isBetween(startTime, endTime, null, '[)');

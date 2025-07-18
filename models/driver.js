@@ -187,6 +187,9 @@ const driverSchema = new Schema({
             },
             end: {
                 type: String // e.g., "06:00 PM"
+            },
+            timezone: {
+                type: String // e.g., "Africa/Nairobi"
             }
         }
     },
