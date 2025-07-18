@@ -530,6 +530,7 @@ class AdminServices {
             // Step 2: Filter drivers based on current time and their availability schedule
             const availableDrivers = drivers.filter(driver => {
                 if (!driver.availability || !driver.availability.workingHours || !driver.availability.workingHours.timezone) {
+                    console.log(`Driver ${driver.userID} excluded due to missing availability info.`);
                     return false; // Exclude drivers without working hours or timezone
                 }
 
@@ -540,8 +541,19 @@ class AdminServices {
                 const startTime = moment.tz(start, "hh:mm A", timezone);
                 const endTime = moment.tz(end, "hh:mm A", timezone);
 
+                let isAvailable = false;
                 // Check if the current time falls within the working hours range
-                return currentTime.isBetween(startTime, endTime, null, '[)');
+                if (endTime.isBefore(startTime)) {
+                    // This is an overnight shift
+                    isAvailable = currentTime.isAfter(startTime) || currentTime.isBefore(endTime);
+                } else {
+                    // This is a same-day shift
+                    isAvailable = currentTime.isBetween(startTime, endTime, null, '[)');
+                }
+
+                console.log(`Driver ${driver.userID}: Current Time: ${currentTime.format()}, Start Time: ${startTime.format()}, End Time: ${endTime.format()}, Available: ${isAvailable}`);
+
+                return isAvailable;
             });
 
             if (availableDrivers.length === 0) {
